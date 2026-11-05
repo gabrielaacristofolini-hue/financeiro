@@ -132,7 +132,8 @@
     } else {
       $('kpiMediaNota').textContent = MESES_COMPLETOS.length === 1
         ? `só ${rotuloMesLongo(MESES_COMPLETOS[0])} está completo`
-        : MESES_COMPLETOS.length ? `${MESES_COMPLETOS.length} meses completos` : 'nenhum mês completo ainda';
+        : MESES_COMPLETOS.length ? `${MESES_COMPLETOS.length} meses completos`
+        : `aparece quando ${rotuloMesLongo(MESES_DADOS[MESES_DADOS.length - 1] || '2000-01').split(' de ')[0]} estiver completo no extrato`;
     }
 
     const grupos = agrupar(lista, t => t.categoria).filter(g => g.total > 0.005);
