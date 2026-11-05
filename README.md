@@ -4,14 +4,17 @@ Painel pessoal de gastos publicado no **GitHub Pages**. É só visualização: o
 
 ## O que o painel mostra
 
-- receitas, despesas, saldo e valor investido;
-- receitas x despesas mês a mês (clique num mês para filtrar);
-- porcentagem da renda gasta;
-- divisão dos gastos por categoria (clique numa categoria para ver as transações);
+O foco são as **despesas e suas categorias**:
+
+- total gasto, média por mês completo, maior categoria e quanto está em "Outros";
+- divisão dos gastos por categoria (clique numa categoria para ver as despesas dela);
 - despesas fixas x variáveis;
+- gastos por mês (clique num mês para filtrar);
 - onde mais gastei, por estabelecimento ou pessoa;
-- divisão da receita por origem;
-- lista de transações com busca.
+- categorias mês a mês, numa tabela em que a cor mais forte indica gasto maior;
+- lista de despesas com busca.
+
+**Regra de categoria:** despesa sem destino conhecido, como um Pix para uma pessoa sem saber o motivo, vai para **Outros**. Quando souber o que foi, é só avisar no chat que a categoria é corrigida.
 
 ## Arquivos
 

@@ -1,5 +1,5 @@
 /*
- * Painel "Minhas Finanças" — só visualização.
+ * Painel "Minhas Despesas" — só visualização, com foco nos gastos e nas categorias.
  * Os dados vêm de dados/transacoes.js (window.FINANCAS), mantido pelo Claude.
  */
 (function () {
@@ -11,6 +11,8 @@
   const NEUTRAS = ['Investimentos', 'Transferência entre contas'];
   // Despesas que se repetem todo mês com valor parecido.
   const FIXAS = ['Moradia', 'Contas da casa', 'Assinaturas', 'Educação', 'Academia'];
+  // Despesa sem destino conhecido.
+  const OUTROS = 'Outros';
 
   const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const MESES_LONGOS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -33,17 +35,18 @@
   const graficos = {};
 
   // ---------- dados ----------
-  const BASE = (window.FINANCAS && window.FINANCAS.transacoes || []).map(t => {
+  const TODAS = (window.FINANCAS && window.FINANCAS.transacoes || []).map(t => {
     const natureza = NEUTRAS.includes(t.categoria) ? 'neutra' : RECEITAS.includes(t.categoria) ? 'receita' : 'despesa';
-    // Quanto a transação soma no total da sua natureza (estornos/reembolsos reduzem a despesa).
+    // Quanto soma no total da sua natureza (reembolsos/estornos abatem a despesa).
     const contrib = natureza === 'despesa' ? -t.valor : natureza === 'receita' ? t.valor : 0;
     return { ...t, natureza, contrib, mes: t.data.slice(0, 7) };
   }).sort((a, b) => a.data.localeCompare(b.data));
+  const DESPESAS = TODAS.filter(t => t.natureza === 'despesa');
 
   const MESES_DADOS = (() => {
-    if (!BASE.length) return [];
-    const fim = BASE[BASE.length - 1].mes;
-    let [a, m] = BASE[0].mes.split('-').map(Number);
+    if (!TODAS.length) return [];
+    const fim = TODAS[TODAS.length - 1].mes;
+    let [a, m] = TODAS[0].mes.split('-').map(Number);
     const lista = [];
     while (true) {
       const k = `${a}-${String(m).padStart(2, '0')}`;
@@ -56,15 +59,13 @@
 
   // Meses cobertos do dia 1 ao último dia pelos extratos (só esses entram em médias e comparações).
   const MESES_COMPLETOS = MESES_DADOS.filter(m => {
-    if (!BASE.length) return false;
     const [a, n] = m.split('-').map(Number);
     const ini = `${m}-01`, fim = `${m}-${String(new Date(a, n, 0).getDate()).padStart(2, '0')}`;
-    return (window.FINANCAS.extratos || []).some(e => e.de <= ini && e.ate >= fim);
+    return ((window.FINANCAS && window.FINANCAS.extratos) || []).some(e => e.de <= ini && e.ate >= fim);
   });
 
-  const CATEGORIAS =[...new Set(BASE.map(t => t.categoria))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-  const somar = (lista, natureza) => lista.filter(t => t.natureza === natureza).reduce((s, t) => s + t.contrib, 0);
+  const soma = lista => lista.reduce((s, t) => s + t.contrib, 0);
+  const doMes = (lista, m) => lista.filter(t => t.mes === m);
 
   function agrupar(lista, chaveFn) {
     const mapa = new Map();
@@ -77,28 +78,29 @@
     return [...mapa.values()].sort((a, b) => b.total - a.total);
   }
 
+  // Categorias em ordem do maior para o menor gasto no total (ordem fixa nos filtros e na matriz).
+  const CATEGORIAS = agrupar(DESPESAS, t => t.categoria).map(g => g.chave);
+
   // ---------- render ----------
   function render() {
-    const lista = estado.mes ? BASE.filter(t => t.mes === estado.mes) : BASE;
+    const lista = estado.mes ? doMes(DESPESAS, estado.mes) : DESPESAS;
     renderKpis(lista);
-    renderMensal();
-    renderMedidor(lista);
     renderCategorias(lista);
     renderFixas(lista);
+    renderMensal();
     renderOnde(lista);
-    renderReceita(lista);
+    renderMatriz();
     renderTabela(lista);
   }
 
   function renderTopo() {
     const f = window.FINANCAS || {};
     const extratos = (f.extratos || []).map(e => `${e.conta}: ${dataBR(e.de)} a ${dataBR(e.ate)}`).join(' · ');
-    $('fonteDados').textContent = BASE.length
-      ? `${extratos || 'Extratos'} · ${BASE.length} transações`
-      : 'Nenhuma transação em dados/transacoes.js';
-
+    $('fonteDados').textContent = DESPESAS.length
+      ? `${extratos || 'Extratos'} · ${DESPESAS.length} despesas`
+      : 'Nenhuma despesa em dados/transacoes.js';
     $('selMes').innerHTML = '<option value="">Todos os meses</option>' +
-      MESES_DADOS.slice().reverse().map(m => `<option value="${m}">${rotuloMesLongo(m)}</option>`).join('');
+      MESES_DADOS.slice().reverse().map(m => `<option value="${m}">${rotuloMesLongo(m)}${MESES_COMPLETOS.includes(m) ? '' : ' (incompleto)'}</option>`).join('');
     $('selCategoria').innerHTML = '<option value="">Todas</option>' + CATEGORIAS.map(c => `<option>${escapar(c)}</option>`).join('');
   }
 
@@ -107,38 +109,43 @@
     $('selCategoria').value = estado.categoria;
   }
 
-  function renderKpis(lista) {
-    const receitas = somar(lista, 'receita');
-    const despesas = somar(lista, 'despesa');
-    const saldo = receitas - despesas;
-    $('kpiReceitas').textContent = moeda(receitas);
-    $('kpiDespesas').textContent = moeda(despesas);
-    $('kpiSaldo').textContent = moeda(saldo);
-    $('kpiSaldo').className = 'kpi-valor ' + (saldo < 0 ? 'delta-ruim' : '');
-    $('kpiReceitasNota').textContent = `${lista.filter(t => t.natureza === 'receita' && t.valor > 0).length} entradas`;
+  function mediaMensal() {
+    return MESES_COMPLETOS.length ? MESES_COMPLETOS.reduce((s, m) => s + soma(doMes(DESPESAS, m)), 0) / MESES_COMPLETOS.length : 0;
+  }
 
-    if (estado.mes) {
+  function renderKpis(lista) {
+    const total = soma(lista);
+    $('kpiTotal').textContent = moeda(total);
+    const receitas = (estado.mes ? doMes(TODAS, estado.mes) : TODAS).filter(t => t.natureza === 'receita').reduce((s, t) => s + t.contrib, 0);
+    $('kpiTotalNota').textContent = `${lista.filter(t => t.valor < 0).length} despesas` +
+      (receitas > 0 ? ` · ${pct.format(total / receitas)} do que entrou` : '');
+
+    const media = mediaMensal();
+    $('kpiMedia').textContent = media ? moeda(media) : '—';
+    if (estado.mes && MESES_COMPLETOS.includes(estado.mes) && MESES_COMPLETOS.length > 1) {
       const outros = MESES_COMPLETOS.filter(m => m !== estado.mes);
-      const media = outros.length ? outros.reduce((s, m) => s + somar(BASE.filter(t => t.mes === m), 'despesa'), 0) / outros.length : 0;
-      const dif = media ? despesas / media - 1 : 0;
-      if (!MESES_COMPLETOS.includes(estado.mes)) $('kpiDespesasNota').textContent = 'mês incompleto no extrato';
-      else $('kpiDespesasNota').innerHTML = media
-        ? `<span class="${dif > 0 ? 'delta-ruim' : 'delta-bom'}">${dif > 0 ? '▲' : '▼'} ${pct.format(Math.abs(dif))}</span> vs. média dos outros meses completos`
-        : 'único mês completo até agora';
-      $('kpiSaldoNota').textContent = rotuloMesLongo(estado.mes);
+      const mediaOutros = outros.reduce((s, m) => s + soma(doMes(DESPESAS, m)), 0) / outros.length;
+      const dif = total / mediaOutros - 1;
+      $('kpiMediaNota').innerHTML = `este mês: <span class="${dif > 0 ? 'delta-ruim' : 'delta-bom'}">${dif > 0 ? '▲' : '▼'} ${pct.format(Math.abs(dif))}</span> vs. os outros`;
+    } else if (estado.mes && !MESES_COMPLETOS.includes(estado.mes)) {
+      $('kpiMediaNota').textContent = 'mês selecionado está incompleto no extrato';
     } else {
-      const mediaCompletos = MESES_COMPLETOS.length
-        ? MESES_COMPLETOS.reduce((s, m) => s + somar(BASE.filter(t => t.mes === m), 'despesa'), 0) / MESES_COMPLETOS.length : 0;
-      $('kpiDespesasNota').textContent = MESES_COMPLETOS.length
-        ? `média de ${moeda(mediaCompletos)} por mês completo` : '';
-      $('kpiSaldoNota').textContent = 'receitas − despesas';
+      $('kpiMediaNota').textContent = MESES_COMPLETOS.length === 1
+        ? `só ${rotuloMesLongo(MESES_COMPLETOS[0])} está completo`
+        : MESES_COMPLETOS.length ? `${MESES_COMPLETOS.length} meses completos` : 'nenhum mês completo ainda';
     }
 
-    const inv = lista.filter(t => t.categoria === 'Investimentos');
-    const aplicado = -inv.filter(t => t.valor < 0).reduce((s, t) => s + t.valor, 0);
-    const resgatado = inv.filter(t => t.valor > 0).reduce((s, t) => s + t.valor, 0);
-    $('kpiInvestido').textContent = moeda(aplicado - resgatado);
-    $('kpiInvestidoNota').textContent = inv.length ? `aplicado ${moedaCurta(aplicado)} · resgatado ${moedaCurta(resgatado)}` : 'nenhuma aplicação no período';
+    const grupos = agrupar(lista, t => t.categoria).filter(g => g.total > 0.005);
+    const maior = grupos.find(g => g.chave !== OUTROS) || grupos[0];
+    $('kpiMaior').textContent = maior ? maior.chave : '—';
+    $('kpiMaiorNota').textContent = maior ? `${moeda(maior.total)} · ${pct.format(maior.total / total)} do total` : '';
+
+    const outros = lista.filter(t => t.categoria === OUTROS);
+    const vOutros = soma(outros);
+    $('kpiOutros').textContent = moeda(vOutros);
+    $('kpiOutrosNota').textContent = outros.length
+      ? `${pct.format(vOutros / total)} do total · ${outros.length} despesas sem destino conhecido`
+      : 'tudo categorizado';
   }
 
   // ---------- gráficos ----------
@@ -151,14 +158,14 @@
       ctx.save();
       ctx.font = `${opts.peso || 400} ${opts.tamanho || 12}px ${Chart.defaults.font.family}`;
       chart.data.datasets.forEach((ds, di) => {
-        const meta = chart.getDatasetMeta(di);
-        meta.data.forEach((el, i) => {
+        chart.getDatasetMeta(di).data.forEach((el, i) => {
           const v = ds.data[i];
           if (v == null || (opts.ocultarZero && !v)) return;
           const texto = opts.formato(v, i);
           if (!texto) return;
           ctx.fillStyle = (opts.corFatia && opts.corFatia(i)) || opts.cor || css('--texto');
-          if (meta.type === 'pie' || meta.type === 'doughnut') {
+          const tipo = chart.getDatasetMeta(di).type;
+          if (tipo === 'pie' || tipo === 'doughnut') {
             const p = el.tooltipPosition();
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(texto, p.x, p.y);
@@ -196,107 +203,35 @@
 
   const cursorMao = (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; };
 
-  function renderMensal() {
-    const meses = MESES_DADOS;
-    const rec = meses.map(m => somar(BASE.filter(t => t.mes === m), 'receita'));
-    const des = meses.map(m => somar(BASE.filter(t => t.mes === m), 'despesa'));
-    const ativo = i => !estado.mes || meses[i] === estado.mes;
-    const limao = css('--limao'), coral = css('--coral');
-    const barra = cor => ({ backgroundColor: ctx => ativo(ctx.dataIndex) ? cor : cor + '40', borderRadius: 4, maxBarThickness: 44, categoryPercentage: .7, barPercentage: .9 });
-
-    desenhar('graficoMensal', {
-      type: 'bar',
-      data: {
-        labels: meses.map(rotuloMes),
-        datasets: [
-          { label: 'Receitas', data: rec, ...barra(limao) },
-          { label: 'Despesas', data: des, ...barra(coral) },
-        ],
-      },
-      options: {
-        layout: { padding: { top: 22 } },
-        scales: {
-          x: { grid: { display: false }, border: { color: css('--grade') } },
-          y: { beginAtZero: true, grid: { color: css('--grade') }, border: { display: false }, ticks: { callback: v => moedaCurta(v), maxTicksLimit: 6 } },
-        },
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          tooltip: { callbacks: {
-            title: items => rotuloMesLongo(meses[items[0].dataIndex]),
-            label: c => ` ${c.dataset.label}: ${moeda(c.parsed.y)}`,
-            footer: items => `Saldo: ${moeda(rec[items[0].dataIndex] - des[items[0].dataIndex])}`,
-          } },
-          rotulos: { ativo: true, formato: v => moedaCurta(v), ocultarZero: true, tamanho: 11, cor: css('--texto-2') },
-        },
-        onClick: (_e, els) => {
-          if (!els.length) return;
-          const m = meses[els[0].index];
-          estado.mes = estado.mes === m ? '' : m;
-          sincronizarFiltros();
-          render();
-        },
-        onHover: cursorMao,
-      },
-    });
-
-    // Avisa quando o primeiro/último mês não está completo no extrato.
-    if (BASE.length) {
-      const primeiro = BASE[0].data, ultimo = BASE[BASE.length - 1].data;
-      const incompletos = [];
-      if (+primeiro.slice(8) > 1) incompletos.push(rotuloMes(primeiro.slice(0, 7)));
-      const [a, m] = ultimo.slice(0, 7).split('-').map(Number);
-      if (+ultimo.slice(8) < new Date(a, m, 0).getDate() && !incompletos.includes(rotuloMes(ultimo.slice(0, 7)))) incompletos.push(rotuloMes(ultimo.slice(0, 7)));
-      $('subMensal').textContent = 'Clique em um mês para filtrar o painel.' +
-        (incompletos.length ? ` Atenção: ${incompletos.join(' e ')} ${incompletos.length > 1 ? 'estão incompletos' : 'está incompleto'} no extrato.` : '');
-    }
-
-    $('tabelaMensal').innerHTML =
-      '<thead><tr><th>Mês</th><th class="num">Receitas</th><th class="num">Despesas</th><th class="num">Saldo</th></tr></thead><tbody>' +
-      meses.map((m, i) => `<tr><td>${rotuloMesLongo(m)}</td><td class="num">${moeda(rec[i])}</td><td class="num">${moeda(des[i])}</td><td class="num">${moeda(rec[i] - des[i])}</td></tr>`).join('') +
-      '</tbody>';
+  function filtrarCategoria(c) {
+    estado.categoria = estado.categoria === c ? '' : c;
+    sincronizarFiltros();
+    render();
+    if (estado.categoria) $('corpoTransacoes').closest('.cartao').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function renderMedidor(lista) {
-    const receitas = somar(lista, 'receita');
-    const despesas = somar(lista, 'despesa');
-    const p = receitas > 0 ? despesas / receitas : (despesas > 0 ? 1 : 0);
-    const preenchido = Math.min(p, 1);
-    const estourou = p > 1;
-    desenhar('graficoMedidor', {
-      type: 'doughnut',
-      data: { datasets: [{
-        data: [preenchido, 1 - preenchido],
-        backgroundColor: [estourou ? css('--coral') : css('--limao'), css('--verde-medio')],
-        borderColor: css('--cartao'), borderWidth: 2, borderRadius: 4,
-      }] },
-      options: {
-        rotation: -90, circumference: 180, cutout: '62%',
-        layout: { padding: { left: 8, right: 8, bottom: 40 } },
-        plugins: { tooltip: { enabled: false } },
-        events: [],
-      },
-    });
-    $('medidorPct').textContent = receitas > 0 ? pct.format(p) : '—';
-    $('medidorPct').className = estourou ? 'delta-ruim' : '';
-    $('medidorNota').textContent = receitas > 0
-      ? `${moeda(despesas)} gastos de ${moeda(receitas)} recebidos${estourou ? ' — gastou mais do que recebeu' : ''}`
-      : 'sem receitas no período';
+  function filtrarMes(m) {
+    estado.mes = estado.mes === m ? '' : m;
+    sincronizarFiltros();
+    render();
   }
 
   function renderCategorias(lista) {
-    const grupos = agrupar(lista.filter(t => t.natureza === 'despesa'), t => t.categoria).filter(g => g.total > 0.005);
+    const grupos = agrupar(lista, t => t.categoria).filter(g => g.total > 0.005);
     const total = grupos.reduce((s, g) => s + g.total, 0);
     const estreito = $('caixaCategorias').clientWidth < 520;
     $('subCategorias').textContent = estado.mes ? rotuloMesLongo(estado.mes) : 'todos os meses';
     $('caixaCategorias').style.height = Math.max(160, grupos.length * 34 + 30) + 'px';
-    const limao = css('--limao');
+    const limao = css('--limao'), cinza = css('--verde-medio');
+    // "Outros" fica em cinza-esverdeado: é o que ainda não tem destino conhecido.
+    const cor = g => g.chave === OUTROS ? cinza : limao;
     desenhar('graficoCategorias', {
       type: 'bar',
       data: {
         labels: grupos.map(g => g.chave),
         datasets: [{
           label: 'Gastos', data: grupos.map(g => g.total),
-          backgroundColor: ctx => !estado.categoria || grupos[ctx.dataIndex]?.chave === estado.categoria ? limao : limao + '40',
+          backgroundColor: ctx => { const g = grupos[ctx.dataIndex]; return !g ? limao : (!estado.categoria || g.chave === estado.categoria ? cor(g) : cor(g) + '40'); },
           borderRadius: 4, barPercentage: .78, categoryPercentage: .9, maxBarThickness: 22,
         }],
       },
@@ -314,27 +249,19 @@
           tooltip: { callbacks: {
             title: items => grupos[items[0].dataIndex].chave,
             label: c => ` ${moeda(c.parsed.x)} · ${pct.format(c.parsed.x / total)} dos gastos`,
-            afterLabel: c => `${grupos[c.dataIndex].qtd} transações`,
+            afterLabel: c => `${grupos[c.dataIndex].qtd} despesas`,
           } },
           rotulos: { ativo: true, formato: v => estreito ? moedaCurta(v) : `${moeda(v)}  ${pct.format(v / total)}`, cor: css('--texto-2') },
         },
-        onClick: (_e, els) => {
-          if (!els.length) return;
-          const c = grupos[els[0].index].chave;
-          estado.categoria = estado.categoria === c ? '' : c;
-          sincronizarFiltros();
-          render();
-          if (estado.categoria) $('corpoTransacoes').closest('.cartao').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        },
+        onClick: (_e, els) => { if (els.length) filtrarCategoria(grupos[els[0].index].chave); },
         onHover: cursorMao,
       },
     });
   }
 
   function renderFixas(lista) {
-    const desp = lista.filter(t => t.natureza === 'despesa');
-    const fixas = desp.filter(t => FIXAS.includes(t.categoria)).reduce((s, t) => s + t.contrib, 0);
-    const variaveis = desp.filter(t => !FIXAS.includes(t.categoria)).reduce((s, t) => s + t.contrib, 0);
+    const fixas = soma(lista.filter(t => FIXAS.includes(t.categoria)));
+    const variaveis = soma(lista.filter(t => !FIXAS.includes(t.categoria)));
     const total = fixas + variaveis;
     desenhar('graficoFixas', {
       type: 'pie',
@@ -353,55 +280,71 @@
     $('notaFixas').textContent = `Fixas: ${FIXAS.join(', ')}.`;
   }
 
+  function renderMensal() {
+    const meses = MESES_DADOS;
+    const valores = meses.map(m => soma(doMes(DESPESAS, m)));
+    const limao = css('--limao');
+    desenhar('graficoMensal', {
+      type: 'bar',
+      data: {
+        labels: meses.map(m => rotuloMes(m) + (MESES_COMPLETOS.includes(m) ? '' : '*')),
+        datasets: [{
+          label: 'Gastos', data: valores,
+          backgroundColor: ctx => !estado.mes || meses[ctx.dataIndex] === estado.mes ? limao : limao + '40',
+          borderRadius: 4, maxBarThickness: 56, categoryPercentage: .7,
+        }],
+      },
+      options: {
+        layout: { padding: { top: 22 } },
+        scales: {
+          x: { grid: { display: false }, border: { color: css('--grade') } },
+          y: { beginAtZero: true, grid: { color: css('--grade') }, border: { display: false }, ticks: { callback: v => moedaCurta(v), maxTicksLimit: 6 } },
+        },
+        plugins: {
+          tooltip: { callbacks: {
+            title: items => rotuloMesLongo(meses[items[0].dataIndex]) + (MESES_COMPLETOS.includes(meses[items[0].dataIndex]) ? '' : ' (incompleto)'),
+            label: c => ` Gastos: ${moeda(c.parsed.y)}`,
+          } },
+          rotulos: { ativo: true, formato: v => moedaCurta(v), ocultarZero: true, tamanho: 12, cor: css('--texto') },
+        },
+        onClick: (_e, els) => { if (els.length) filtrarMes(meses[els[0].index]); },
+        onHover: cursorMao,
+      },
+    });
+    const incompletos = meses.filter(m => !MESES_COMPLETOS.includes(m)).map(rotuloMes);
+    $('subMensal').textContent = 'Clique em um mês para filtrar o painel.' +
+      (incompletos.length ? ` * ${incompletos.join(' e ')}: mês incompleto no extrato.` : '');
+  }
+
   function renderOnde(lista) {
-    const grupos = agrupar(lista.filter(t => t.natureza === 'despesa'), t => t.nome).filter(g => g.total > 0.005).slice(0, 10);
+    const grupos = agrupar(lista, t => t.nome).filter(g => g.total > 0.005).slice(0, 10);
     const max = grupos.length ? grupos[0].total : 0;
     $('listaOnde').innerHTML = grupos.length ? grupos.map(g => `
       <li>
         <span class="r-nome" title="${escapar(g.chave)}">${escapar(g.chave)}</span>
         <span class="r-valor">${moeda(g.total)}</span>
         <span class="r-barra"><i style="width:${(g.total / max * 100).toFixed(1)}%"></i></span>
-        <span class="r-meta">${escapar(g.itens[0].categoria)} · ${g.qtd} ${g.qtd > 1 ? 'transações' : 'transação'}</span>
+        <span class="r-meta">${escapar(g.itens[0].categoria)} · ${g.qtd} ${g.qtd > 1 ? 'despesas' : 'despesa'}</span>
       </li>`).join('') : '<li class="vazio">Sem gastos no período.</li>';
   }
 
-  function renderReceita(lista) {
-    let grupos = agrupar(lista.filter(t => t.natureza === 'receita'), t => t.nome).filter(g => g.total > 0.005);
-    if (grupos.length > 6) {
-      const resto = grupos.slice(5);
-      grupos = grupos.slice(0, 5).concat([{ chave: `Outras (${resto.length})`, total: resto.reduce((s, g) => s + g.total, 0), qtd: resto.reduce((s, g) => s + g.qtd, 0) }]);
-    }
-    // Em telas estreitas as barras ficam deitadas, para os nomes caberem.
-    const caixa = $('graficoReceita').parentElement;
-    const deitado = caixa.clientWidth < 520;
-    caixa.style.height = deitado ? Math.max(140, grupos.length * 40 + 20) + 'px' : '';
-    const quebrar = nome => {
-      const linhas = [];
-      let linha = '';
-      for (const p of nome.split(/\s+/)) {
-        if ((linha + ' ' + p).trim().length > 14 && linha) { linhas.push(linha); linha = p; } else linha = (linha + ' ' + p).trim();
-      }
-      if (linha) linhas.push(linha);
-      return linhas.slice(0, 2).map(l => encurtar(l, 16));
+  // Tabela categoria × mês; a intensidade do verde mostra o tamanho do gasto (escala de um só tom).
+  function renderMatriz() {
+    const meses = MESES_DADOS;
+    const valor = (c, m) => soma(DESPESAS.filter(t => t.categoria === c && t.mes === m));
+    const linhas = CATEGORIAS.map(c => ({ c, v: meses.map(m => valor(c, m)) }));
+    const max = Math.max(0, ...linhas.flatMap(l => l.v));
+    const celula = (v, m) => {
+      if (Math.abs(v) < 0.005) return `<td class="num vazio-cel" data-mes="${m}">—</td>`;
+      const a = max ? Math.max(0.06, v / max) : 0;
+      const forte = a > 0.55;
+      return `<td class="num" data-mes="${m}" style="background:rgba(180,240,95,${(a * 0.85).toFixed(2)});${forte ? 'color:#13201a;font-weight:600' : ''}">${moeda(v)}</td>`;
     };
-    desenhar('graficoReceita', {
-      type: 'bar',
-      data: {
-        labels: grupos.map(g => deitado ? encurtar(g.chave, 18) : quebrar(g.chave)),
-        datasets: [{ label: 'Receitas', data: grupos.map(g => g.total), backgroundColor: css('--limao'), borderRadius: 4, maxBarThickness: deitado ? 22 : 64, categoryPercentage: .8 }],
-      },
-      options: {
-        indexAxis: deitado ? 'y' : 'x',
-        layout: { padding: deitado ? { right: 64 } : { top: 24 } },
-        scales: deitado
-          ? { y: { grid: { display: false }, border: { display: false }, ticks: { color: css('--texto'), font: { size: 12 } } }, x: { display: false, beginAtZero: true } }
-          : { x: { grid: { display: false }, border: { color: css('--grade') }, ticks: { color: css('--texto'), autoSkip: false, maxRotation: 0, font: { size: 11 } } }, y: { display: false, beginAtZero: true } },
-        plugins: {
-          tooltip: { callbacks: { title: items => grupos[items[0].dataIndex].chave, label: c => ` ${moeda(deitado ? c.parsed.x : c.parsed.y)} · ${grupos[c.dataIndex].qtd} entradas` } },
-          rotulos: { ativo: true, formato: v => moedaCurta(v), cor: css('--texto') },
-        },
-      },
-    });
+    const totais = meses.map(m => soma(doMes(DESPESAS, m)));
+    $('tabelaMatriz').innerHTML =
+      `<thead><tr><th>Categoria</th>${meses.map(m => `<th class="num${m === estado.mes ? ' sel' : ''}">${rotuloMes(m)}${MESES_COMPLETOS.includes(m) ? '' : '*'}</th>`).join('')}<th class="num">Total</th></tr></thead>` +
+      '<tbody>' + linhas.map(l => `<tr class="${l.c === estado.categoria ? 'sel' : ''}" data-cat="${escapar(l.c)}"><td class="cat-nome">${escapar(l.c)}</td>${l.v.map((v, i) => celula(v, meses[i])).join('')}<td class="num total">${moeda(l.v.reduce((s, v) => s + v, 0))}</td></tr>`).join('') + '</tbody>' +
+      `<tfoot><tr><td>Total</td>${totais.map(v => `<td class="num">${moeda(v)}</td>`).join('')}<td class="num">${moeda(totais.reduce((s, v) => s + v, 0))}</td></tr></tfoot>`;
   }
 
   function renderTabela(lista) {
@@ -414,13 +357,14 @@
       <tr>
         <td class="data">${dataBR(t.data).slice(0, 5)}<span class="ano">${dataBR(t.data).slice(5)}</span></td>
         <td class="desc">${escapar(t.nome)}<small>${escapar(t.tipo)}</small></td>
-        <td class="cat">${escapar(t.categoria)}${t.natureza === 'neutra' ? '<span class="tag-neutra" title="Não entra no total de receitas nem de despesas">não conta</span>' : ''}</td>
+        <td class="cat">${escapar(t.categoria)}</td>
         <td class="num ${t.valor > 0 ? 'valor-pos' : ''}">${moeda(t.valor)}</td>
-      </tr>`).join('') : '<tr><td colspan="4" class="vazio">Nenhuma transação encontrada.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="4" class="vazio">Nenhuma despesa encontrada.</td></tr>';
 
     const filtros = [estado.mes && rotuloMesLongo(estado.mes), estado.categoria, estado.busca && `"${estado.busca}"`].filter(Boolean);
-    $('subTransacoes').textContent = filtros.length ? `Filtro: ${filtros.join(' · ')}` : 'Todas as transações';
-    $('rodapeTabela').textContent = `${linhas.length} transações · soma ${moeda(linhas.reduce((s, t) => s + t.valor, 0))}`;
+    $('subTransacoes').textContent = filtros.length ? `Filtro: ${filtros.join(' · ')}` : 'Todas as despesas';
+    $('rodapeTabela').textContent = `${linhas.length} itens · total ${moeda(soma(linhas))}` +
+      (linhas.some(t => t.valor > 0) ? ' (reembolsos já descontados)' : '');
   }
 
   // ---------- eventos ----------
@@ -432,8 +376,16 @@
       clearTimeout(espera);
       espera = setTimeout(() => {
         estado.busca = e.target.value;
-        renderTabela(estado.mes ? BASE.filter(t => t.mes === estado.mes) : BASE);
+        renderTabela(estado.mes ? doMes(DESPESAS, estado.mes) : DESPESAS);
       }, 150);
+    });
+    // Clique na matriz: célula filtra mês + categoria; nome da categoria filtra só a categoria.
+    $('tabelaMatriz').addEventListener('click', e => {
+      const tr = e.target.closest('tr[data-cat]');
+      if (!tr) return;
+      const td = e.target.closest('td[data-mes]');
+      if (td) { estado.mes = td.dataset.mes; estado.categoria = ''; }
+      filtrarCategoria(tr.dataset.cat);
     });
     // Ao mudar bastante a largura (girar o celular etc.), redesenha para ajustar os rótulos.
     let larguraAnterior = innerWidth, esperaResize;
