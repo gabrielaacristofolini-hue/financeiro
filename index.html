@@ -19,28 +19,11 @@
         <p class="fonte-dados" id="fonteDados">Carregando…</p>
       </div>
     </div>
-
-    <div class="topo-acoes">
-      <label class="filtro">
-        <span>Mês</span>
-        <select id="selMes"><option value="">Todos</option></select>
-      </label>
-      <button class="btn btn-primario" id="btnImportar" type="button">Importar extrato</button>
-      <input type="file" id="inputArquivo" accept=".csv,.ofx,.json,.txt" multiple hidden>
-      <details class="menu">
-        <summary class="btn btn-icone" aria-label="Mais opções">⋯</summary>
-        <div class="menu-lista">
-          <button type="button" id="btnExportarCifrado">Exportar dados cifrados (para o GitHub)</button>
-          <button type="button" id="btnBaixarJson">Baixar backup em JSON (sem cifra)</button>
-          <button type="button" id="btnLimpar">Apagar dados deste navegador</button>
-        </div>
-      </details>
-    </div>
+    <label class="filtro filtro-mes">
+      <span>Mês</span>
+      <select id="selMes"><option value="">Todos os meses</option></select>
+    </label>
   </header>
-
-  <div class="aviso" id="avisoExemplo" hidden>
-    <strong>Dados de exemplo.</strong> Os números abaixo são fictícios. Clique em <em>Importar extrato</em> para ver os seus — o arquivo é lido só no seu navegador, nada é enviado para a internet.
-  </div>
 
   <main>
     <section class="kpis" aria-label="Resumo">
@@ -157,7 +140,6 @@
           </label>
         </div>
       </header>
-      <p class="sub">Categoria errada? Troque no seletor — a correção vale para todas as transações do mesmo estabelecimento/pessoa.</p>
       <div class="tabela-rolagem">
         <table class="tabela-transacoes">
           <thead>
@@ -170,52 +152,8 @@
     </section>
   </main>
 
-  <dialog id="dlgSenha" class="dialogo">
-    <form method="dialog" id="formSenha">
-      <h2>Desbloquear finanças</h2>
-      <p class="sub">Os dados deste site estão cifrados. Digite a senha para visualizar.</p>
-      <label class="campo">
-        <span>Senha</span>
-        <input type="password" id="inputSenha" autocomplete="current-password" required>
-      </label>
-      <label class="check"><input type="checkbox" id="chkLembrar"> Lembrar neste dispositivo</label>
-      <p class="erro" id="erroSenha" hidden>Senha incorreta.</p>
-      <div class="dialogo-acoes">
-        <button type="button" class="btn" id="btnVerExemplo">Ver exemplo</button>
-        <button type="submit" class="btn btn-primario">Abrir</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="dlgExportar" class="dialogo">
-    <form method="dialog" id="formExportar">
-      <h2>Exportar dados cifrados</h2>
-      <p class="sub">Gera o arquivo <code>financas.cifrado.json</code>. Coloque-o na pasta <code>dados/</code> do repositório: o site publicado vai pedir esta senha para abrir. Sem a senha ninguém lê o conteúdo — e ela não pode ser recuperada, então guarde-a bem.</p>
-      <label class="campo">
-        <span>Senha (mínimo 10 caracteres)</span>
-        <input type="password" id="inputNovaSenha" autocomplete="new-password" minlength="10" required>
-      </label>
-      <label class="campo">
-        <span>Repita a senha</span>
-        <input type="password" id="inputNovaSenha2" autocomplete="new-password" minlength="10" required>
-      </label>
-      <p class="erro" id="erroExportar" hidden></p>
-      <div class="dialogo-acoes">
-        <button type="button" class="btn" id="btnCancelarExportar">Cancelar</button>
-        <button type="submit" class="btn btn-primario">Gerar arquivo</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="js/categorias.js"></script>
-  <script src="js/importar.js"></script>
-  <script src="js/cripto.js"></script>
-  <script src="js/exemplo.js"></script>
-  <!-- Dados locais: só existe no seu computador (pasta ignorada pelo git). No GitHub Pages este arquivo não existe. -->
-  <script src="privado/dados.js" onerror="void 0"></script>
+  <script src="dados/transacoes.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

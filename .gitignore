@@ -1,12 +1,9 @@
-# Extratos e dados em texto aberto NUNCA vão para o GitHub (o repositório é público).
+# Extratos originais do banco (com CPF, agência e conta) ficam só no computador.
+# O site usa apenas a versão limpa em dados/transacoes.js.
 privado/
 *.csv
 *.ofx
 *.pdf
-financas-backup*.json
-
-# Só o arquivo cifrado pode ser publicado
-!dados/financas.cifrado.json
 
 .DS_Store
 Thumbs.db

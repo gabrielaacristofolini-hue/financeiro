@@ -162,7 +162,7 @@ td.desc { max-width: 420px; overflow-wrap: anywhere; }
 td.desc small { display: block; color: var(--texto-3); font-size: 12px; }
 .valor-pos { color: var(--positivo); }
 .tag-neutra { display: inline-block; margin-left: 6px; font-size: 11px; color: var(--texto-3); border: 1px solid var(--borda); border-radius: 999px; padding: 0 7px; white-space: nowrap; }
-.tabela-transacoes select { font-size: 13px; padding: 4px 6px; max-width: 200px; }
+.tabela-transacoes td.cat { font-size: 13px; color: var(--texto-2); }
 .rodape-tabela { margin-top: 10px; }
 
 .ranking { list-style: none; margin: 10px 0 0; padding: 0; counter-reset: r; }
@@ -204,9 +204,8 @@ td.desc small { display: block; color: var(--texto-3); font-size: 12px; }
 }
 @media (max-width: 560px) {
   .topo { padding-top: 16px; }
-  .topo-acoes { width: 100%; }
-  .topo-acoes .filtro { flex: 1 1 auto; }
-  .topo-acoes .filtro select { flex: 1 1 auto; }
+  .filtro-mes { width: 100%; }
+  .filtro-mes select { flex: 1 1 auto; }
   .kpis { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .kpi { padding: 12px 14px; }
   .kpi-valor { font-size: 22px; }
@@ -216,5 +215,5 @@ td.desc small { display: block; color: var(--texto-3); font-size: 12px; }
   td.desc { max-width: none; }
   th, td { padding: 8px 6px; }
   .ano { display: none; }
-  .tabela-transacoes select { max-width: 130px; font-size: 12px; }
+  .tabela-transacoes td.cat { font-size: 12px; }
 }

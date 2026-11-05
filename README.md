@@ -1,64 +1,38 @@
 # Minhas Finanças
 
-Painel pessoal de gastos que roda direto no **GitHub Pages**, sem servidor e sem build: só HTML, CSS e JavaScript.
+Painel pessoal de gastos publicado no **GitHub Pages**. É só visualização: os dados ficam no próprio repositório e são atualizados pelo Claude a partir dos extratos enviados no chat.
 
-O painel mostra:
+## O que o painel mostra
 
 - receitas, despesas, saldo e valor investido;
-- receitas x despesas mês a mês;
-- quanto da renda foi gasto;
-- divisão dos gastos por categoria;
+- receitas x despesas mês a mês (clique num mês para filtrar);
+- porcentagem da renda gasta;
+- divisão dos gastos por categoria (clique numa categoria para ver as transações);
 - despesas fixas x variáveis;
-- onde você mais gastou (por estabelecimento ou pessoa);
-- de onde veio a receita;
-- todas as transações, com busca e troca de categoria.
+- onde mais gastei, por estabelecimento ou pessoa;
+- divisão da receita por origem;
+- lista de transações com busca.
 
-## Publicar no GitHub Pages
-
-1. No repositório, abra **Settings → Pages**.
-2. Em *Build and deployment*, escolha **Source: Deploy from a branch**.
-3. Selecione a branch **main** e a pasta **/ (root)**, e clique em **Save**.
-4. Em 1 ou 2 minutos o site fica disponível em `https://gabrielaacristofolini-hue.github.io/financeiro/`.
-
-## Privacidade: por que os dados vão cifrados
-
-O repositório é **público**: qualquer pessoa consegue ler os arquivos dele. Um extrato bancário tem nomes, CPFs parciais e números de conta, seus e de terceiros. Por isso:
-
-- extratos (`.csv`, `.ofx`, `.pdf`) e a pasta `privado/` estão no `.gitignore` e **nunca** são enviados;
-- o site publicado lê apenas `dados/financas.cifrado.json`, um arquivo cifrado com **AES-256-GCM**, cuja chave é derivada da sua senha com PBKDF2 (600 mil iterações);
-- a senha nunca sai do seu navegador. Sem ela o arquivo é ilegível, e também **não há como recuperá-la**.
-
-## Como atualizar com um extrato novo
-
-1. Abra o site (publicado ou o `index.html` local) e clique em **Importar extrato**. São aceitos CSV e OFX do Nubank, CSV de outros bancos com colunas Data/Valor/Descrição e o backup JSON do próprio site. Você também pode arrastar o arquivo para a página.
-2. Confira as categorias. Para corrigir uma, troque no seletor da tabela: a correção vale para todas as transações do mesmo estabelecimento ou pessoa.
-3. Abra o menu **⋯ → Exportar dados cifrados**, escolha a senha e salve o arquivo `financas.cifrado.json`.
-4. Envie esse arquivo para a pasta `dados/` do repositório, substituindo o anterior. Pode ser pelo próprio site do GitHub: *Add file → Upload files*.
-
-Importar um extrato que já foi importado não duplica nada: as transações são identificadas pelo código do banco.
-
-## Visualizar localmente
-
-Com os extratos na pasta `privado/` (que só existe no seu computador), basta abrir o `index.html` no navegador: o arquivo `privado/dados.js` carrega seus dados sem passar pela internet.
-
-## Estrutura
+## Arquivos
 
 ```
-index.html          página do painel
-css/estilo.css      visual (tema escuro verde / limão)
-js/app.js           carregamento, cálculos e gráficos (Chart.js)
-js/importar.js      leitura de CSV / OFX / JSON
-js/categorias.js    regras de categorização automática
-js/cripto.js        cifrar e decifrar com senha (Web Crypto)
-js/exemplo.js       dados fictícios de demonstração
-dados/              apenas financas.cifrado.json (publicado)
-privado/            seus extratos em texto aberto (NÃO publicado)
+index.html            página
+css/estilo.css        visual (tema escuro verde / limão)
+js/app.js             cálculos e gráficos (Chart.js)
+dados/transacoes.js   banco de dados: todas as transações, já limpas e categorizadas
+privado/              extratos originais do banco (não vão para o GitHub)
 ```
+
+## Como os dados são atualizados
+
+1. Você manda o extrato novo no chat.
+2. O Claude limpa os dados: remove CPF, agência e conta, padroniza os nomes e define a categoria de cada transação.
+3. As transações novas entram em `dados/transacoes.js`, sem repetir as que já existem, e vão para a `main`. O Pages atualiza em 1 ou 2 minutos.
 
 ## Regras de cálculo
 
-- **Despesas**: saídas em todas as categorias de gasto. Estornos e reembolsos reduzem a categoria correspondente.
-- **Receitas**: entradas em *Salário e renda* e *Recebimentos*.
-- **Não contam** em nenhum dos dois: *Investimentos* (aplicações e resgates) e *Transferência entre contas* (dinheiro que só mudou de conta).
-- **Fatura do cartão**: o pagamento da fatura conta como gasto enquanto o extrato do cartão não é importado. Depois que ele é importado, cada compra do cartão é contada individualmente e o pagamento da fatura passa a ser neutro, para nada ser contado duas vezes.
+- **Receitas**: categorias *Salário e renda* e *Recebimentos*.
+- **Despesas**: todas as outras categorias. Estornos e reembolsos abatem o valor da categoria.
+- **Não contam** como receita nem como despesa: *Investimentos* (aplicação e resgate) e *Transferência entre contas* (Pix entre contas próprias).
+- **Fatura do cartão**: entra como despesa porque o extrato do cartão ainda não foi enviado. Quando ele for, cada compra passa a ser contada separadamente e o pagamento da fatura deixa de contar, para não somar duas vezes.
 - **Despesas fixas**: Moradia, Contas da casa, Assinaturas, Educação e Academia. As demais são variáveis.
