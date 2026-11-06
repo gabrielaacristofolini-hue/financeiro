@@ -55,6 +55,8 @@ code { font-size: .9em; background: var(--cartao-2); padding: 1px 5px; border-ra
 }
 .marca-icone svg { width: 26px; height: 26px; fill: #fff; }
 .fonte-dados { margin: 1px 0 0; color: var(--texto-2); font-size: 13px; }
+.link-caderno { font-size: 13px; color: var(--limao); text-decoration: none; }
+.link-caderno:hover { text-decoration: underline; }
 .topo-acoes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
 .btn {

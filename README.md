@@ -16,10 +16,18 @@ O foco são as **despesas e suas categorias**:
 
 **Regra de categoria:** despesa sem destino conhecido, como um Pix para uma pessoa sem saber o motivo, vai para **Outros**. Quando souber o que foi, é só avisar no chat que a categoria é corrigida.
 
+## Duas versões
+
+- **Painel** (`index.html`): tema escuro com gráficos de barras e tabelas.
+- **Caderno** (`caderno.html`): visual de caderno de anotações, com uma pizza colorida que mostra todos os gastos, post-its com destaques, um "tracker" de gastos por dia e um diário com as observações de cada transação.
+
 ## Arquivos
 
 ```
-index.html            página
+index.html            página (painel)
+caderno.html          página (caderno)
+css/caderno.css       visual do caderno
+js/caderno.js         pizza, tracker e diário do caderno
 css/estilo.css        visual (tema escuro verde / limão)
 js/app.js             cálculos e gráficos (Chart.js)
 dados/transacoes.js   banco de dados: todas as transações, já limpas e categorizadas

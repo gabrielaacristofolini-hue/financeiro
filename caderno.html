@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Caderno de Contas</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f5efe0'/%3E%3Ccircle cx='16' cy='16' r='10' fill='%232a78d6'/%3E%3Cpath d='M16 16V6a10 10 0 0 1 9.5 13z' fill='%23eb6834'/%3E%3Cpath d='M16 16l9.5 3A10 10 0 0 1 16 26z' fill='%23eda100'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/caderno.css">
+</head>
+<body>
+  <!-- filtros SVG compartilhados: traço de lápis e hachura de marca-texto -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="tremido" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="ruido"/>
+        <feDisplacementMap in="SourceGraphic" in2="ruido" scale="3.2" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <pattern id="hachura" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="7" stroke="#fffaf0" stroke-width="1.6" stroke-opacity=".38"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <div class="folha">
+    <header class="cabecalho">
+      <div>
+        <span class="fita">contas do mês</span>
+        <h1 id="titulo">Minhas despesas</h1>
+        <p class="caneta-azul" id="periodo">carregando…</p>
+      </div>
+      <div class="cabecalho-acoes">
+        <label class="seletor">
+          <span>mês:</span>
+          <select id="selMes"></select>
+        </label>
+        <a class="link-painel" href="index.html">ver versão painel →</a>
+      </div>
+    </header>
+
+    <section class="pagina-pizza">
+      <div class="pizza-coluna">
+        <h2 class="titulo-secao">pra onde foi o dinheiro <span class="seta-vermelha">↓</span></h2>
+        <div class="pizza-caixa" id="pizzaCaixa"></div>
+        <p class="dica">passe o dedo/mouse nas fatias · clique para ver só aquela categoria</p>
+      </div>
+
+      <div class="legenda-coluna">
+        <div class="total-grande">
+          <span class="rotulo-mao">gastei no total</span>
+          <strong id="totalGrande">—</strong>
+          <span class="caneta-azul" id="totalNota"></span>
+        </div>
+        <ol class="lista-categorias" id="listaCategorias"></ol>
+      </div>
+    </section>
+
+    <section class="postits" id="postits" aria-label="Destaques"></section>
+
+    <section class="bloco">
+      <h2 class="titulo-secao">tracker do mês <span class="nota-lado">cada bolinha = um gasto naquele dia · maior = mais caro</span></h2>
+      <div class="rolagem"><table class="tracker" id="tracker"></table></div>
+    </section>
+
+    <section class="bloco">
+      <h2 class="titulo-secao">diário de gastos <span class="nota-lado" id="filtroAtivo"></span></h2>
+      <div class="diario" id="diario"></div>
+    </section>
+
+    <footer class="rodape">atualizado em <span id="atualizado"></span> · dados em <code>dados/transacoes.js</code></footer>
+  </div>
+
+  <div class="balao" id="balao" hidden></div>
+
+  <script src="dados/transacoes.js"></script>
+  <script src="js/caderno.js"></script>
+</body>
+</html>
