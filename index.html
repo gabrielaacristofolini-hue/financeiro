@@ -4,139 +4,122 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Minhas Finanças</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2317211f'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1.5' fill='%23b4f05f'/%3E%3Crect x='14' y='11' width='4' height='14' rx='1.5' fill='%23b4f05f'/%3E%3Crect x='21' y='7' width='4' height='18' rx='1.5' fill='%23b4f05f'/%3E%3C/svg%3E">
+  <title>Relatório de Despesas</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f4b400'/%3E%3Crect x='6' y='14' width='5' height='12' fill='%23111'/%3E%3Crect x='13.5' y='8' width='5' height='18' fill='%23111'/%3E%3Crect x='21' y='18' width='5' height='8' fill='%23111'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-  <header class="topo">
-    <div class="marca">
-      <span class="marca-icone" aria-hidden="true">
-        <svg viewBox="0 0 24 24"><rect x="3" y="13" width="4" height="8" rx="1.2"/><rect x="10" y="8" width="4" height="13" rx="1.2"/><rect x="17" y="3" width="4" height="18" rx="1.2"/></svg>
-      </span>
-      <div>
-        <h1>Minhas Despesas</h1>
-        <p class="fonte-dados" id="fonteDados">Carregando…</p>
-        <a class="link-caderno" href="caderno.html">ver versão caderno →</a>
-      </div>
+
+  <!-- CAPA -->
+  <header class="capa">
+    <div class="capa-amarela">
+      <div class="etiqueta">Relatório de despesas</div>
+      <h1 class="capa-titulo"><span id="mesNome">—</span><small id="anoNome"></small></h1>
+      <p class="capa-total" id="capaTotal">R$ —</p>
+      <p class="capa-sub" id="capaSub">carregando…</p>
+      <label class="seletor-mes" id="seletorMes" hidden>
+        <span>mês</span>
+        <select id="selMes"></select>
+      </label>
     </div>
-    <label class="filtro filtro-mes">
-      <span>Mês</span>
-      <select id="selMes"><option value="">Todos os meses</option></select>
-    </label>
+    <div class="capa-preta">
+      <div class="numeros" id="numeros"></div>
+    </div>
   </header>
 
   <main>
-    <section class="kpis" aria-label="Resumo">
-      <article class="kpi">
-        <span class="kpi-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 3h9v4h-2V5H6v14h5v-2h2v4H4V3Zm12.5 4.5L21 12l-4.5 4.5-1.4-1.4 2.1-2.1H9v-2h8.2l-2.1-2.1 1.4-1.4Z"/></svg></span>
+    <!-- 01 -->
+    <section class="secao fundo-amarelo">
+      <header class="secao-topo">
+        <span class="capitulo">01</span>
         <div>
-          <h2 class="kpi-rotulo">Total gasto</h2>
-          <p class="kpi-valor" id="kpiTotal">—</p>
-          <p class="kpi-nota" id="kpiTotalNota"></p>
+          <h2>Para onde foi</h2>
+          <p class="secao-sub">Gastos por categoria · clique numa barra para ver os lançamentos dela</p>
         </div>
-      </article>
-      <article class="kpi">
-        <span class="kpi-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V2Zm12 8H5v9h14v-9ZM5 8h14V6H5v2Zm2 4h4v4H7v-4Z"/></svg></span>
-        <div>
-          <h2 class="kpi-rotulo" id="kpiMediaRotulo">Média por mês</h2>
-          <p class="kpi-valor" id="kpiMedia">—</p>
-          <p class="kpi-nota" id="kpiMediaNota"></p>
-        </div>
-      </article>
-      <article class="kpi">
-        <span class="kpi-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3h8.6l9.4 9.4-8.6 8.6L3 11.6V3Zm2 2v5.8l7.4 7.4 5.8-5.8L10.8 5H5Zm3 1.5A1.5 1.5 0 1 1 8 9.5a1.5 1.5 0 0 1 0-3Z"/></svg></span>
-        <div>
-          <h2 class="kpi-rotulo">Maior categoria</h2>
-          <p class="kpi-valor" id="kpiMaior">—</p>
-          <p class="kpi-nota" id="kpiMaiorNota"></p>
-        </div>
-      </article>
-      <article class="kpi">
-        <span class="kpi-icone" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-1 11h2v2h-2v-2Zm1-8a3.5 3.5 0 0 1 1.2 6.8c-.3.1-.2.2-.2.5V14h-2v-1c0-1 .6-1.8 1.5-2.1A1.5 1.5 0 1 0 10.5 9.5h-2A3.5 3.5 0 0 1 12 7Z"/></svg></span>
-        <div>
-          <h2 class="kpi-rotulo">Em "Outros"</h2>
-          <p class="kpi-valor" id="kpiOutros">—</p>
-          <p class="kpi-nota" id="kpiOutrosNota"></p>
-        </div>
-      </article>
+      </header>
+      <div class="barras" id="barras"></div>
     </section>
 
-    <div class="grade grade-b">
-      <section class="cartao">
-        <header class="cartao-topo">
-          <h2>Divisão de gastos</h2>
-          <span class="sub" id="subCategorias"></span>
+    <!-- 02 + 03 -->
+    <div class="dupla">
+      <section class="secao fundo-branco">
+        <header class="secao-topo">
+          <span class="capitulo">02</span>
+          <div>
+            <h2>Fixo x variável</h2>
+            <p class="secao-sub">O que se repete todo mês e o que depende de mim</p>
+          </div>
         </header>
-        <p class="sub">Clique numa categoria para ver as despesas dela.</p>
-        <div class="grafico" id="caixaCategorias"><canvas id="graficoCategorias" role="img" aria-label="Gastos por categoria"></canvas></div>
+        <div class="meia-lua">
+          <svg viewBox="0 0 240 130" id="meiaLua" role="img" aria-label="Proporção de despesas fixas"></svg>
+          <div class="meia-lua-num"><strong id="pctFixo">—</strong><span>fixo</span></div>
+        </div>
+        <div class="fixo-legenda" id="fixoLegenda"></div>
       </section>
 
-      <section class="cartao cartao-centro">
-        <header class="cartao-topo"><h2>Despesas fixas x variáveis</h2></header>
-        <div class="grafico grafico-pizza"><canvas id="graficoFixas" role="img" aria-label="Despesas fixas e variáveis"></canvas></div>
-        <div class="legenda legenda-centro" aria-hidden="true">
-          <span><i class="pino pino-fixa"></i>Despesa fixa</span>
-          <span><i class="pino pino-variavel"></i>Despesa variável</span>
-        </div>
-        <p class="sub centro" id="notaFixas"></p>
+      <section class="secao fundo-preto">
+        <header class="secao-topo">
+          <span class="capitulo">03</span>
+          <div>
+            <h2>Sem destino</h2>
+            <p class="secao-sub">O que está em “Outros”</p>
+          </div>
+        </header>
+        <p class="destaque-amarelo" id="outrosValor">—</p>
+        <p class="outros-pct" id="outrosPct"></p>
+        <ul class="outros-lista" id="outrosLista"></ul>
       </section>
     </div>
 
-    <div class="grade grade-a">
-      <section class="cartao">
-        <header class="cartao-topo"><h2>Gastos por mês</h2></header>
-        <p class="sub" id="subMensal">Clique em um mês para filtrar o painel.</p>
-        <div class="grafico grafico-mensal"><canvas id="graficoMensal" role="img" aria-label="Gastos por mês"></canvas></div>
-      </section>
-
-      <section class="cartao">
-        <header class="cartao-topo">
+    <!-- 04 -->
+    <section class="secao fundo-branco">
+      <header class="secao-topo">
+        <span class="capitulo">04</span>
+        <div>
           <h2>Onde mais gastei</h2>
-          <span class="sub">por estabelecimento / pessoa</span>
-        </header>
-        <ol class="ranking" id="listaOnde"></ol>
-      </section>
-    </div>
-
-    <section class="cartao">
-      <header class="cartao-topo">
-        <h2>Categorias mês a mês</h2>
-        <span class="sub">quanto mais forte a cor, maior o gasto</span>
+          <p class="secao-sub" id="subOnde">Por estabelecimento ou pessoa</p>
+        </div>
       </header>
-      <div class="tabela-rolagem"><table class="matriz" id="tabelaMatriz"></table></div>
+      <ol class="ranking" id="ranking"></ol>
     </section>
 
-    <section class="cartao">
-      <header class="cartao-topo">
+    <!-- 05 -->
+    <section class="secao fundo-preto">
+      <header class="secao-topo">
+        <span class="capitulo">05</span>
         <div>
-          <h2>Despesas</h2>
-          <p class="sub" id="subTransacoes"></p>
-        </div>
-        <div class="filtros">
-          <label class="filtro">
-            <span>Categoria</span>
-            <select id="selCategoria"><option value="">Todas</option></select>
-          </label>
-          <label class="filtro filtro-busca">
-            <span>Buscar</span>
-            <input type="search" id="inputBusca" placeholder="nome, loja…">
-          </label>
+          <h2>Dia a dia</h2>
+          <p class="secao-sub">Quanto saiu em cada dia do mês · toque num dia para ver o detalhe</p>
         </div>
       </header>
-      <div class="tabela-rolagem">
-        <table class="tabela-transacoes">
-          <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="num">Valor</th></tr>
-          </thead>
-          <tbody id="corpoTransacoes"></tbody>
-        </table>
-      </div>
-      <p class="sub rodape-tabela" id="rodapeTabela"></p>
+      <div class="dias" id="dias"></div>
+      <p class="dia-detalhe" id="diaDetalhe">&nbsp;</p>
+    </section>
+
+    <!-- 06 -->
+    <section class="secao fundo-branco">
+      <header class="secao-topo">
+        <span class="capitulo">06</span>
+        <div>
+          <h2>Lançamentos</h2>
+          <p class="secao-sub" id="subLanc">Todos os gastos do mês, com as observações</p>
+        </div>
+      </header>
+      <div class="filtro-ativo" id="filtroAtivo" hidden></div>
+      <div class="lancamentos" id="lancamentos"></div>
     </section>
   </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <footer class="rodape">
+    <span>Relatório de despesas · dados processados no chat</span>
+    <span id="atualizado"></span>
+  </footer>
+
+  <div class="dica" id="dica" hidden></div>
+
   <script src="dados/transacoes.js"></script>
   <script src="js/app.js"></script>
 </body>
