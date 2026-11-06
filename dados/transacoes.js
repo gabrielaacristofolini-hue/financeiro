@@ -11,7 +11,7 @@
  * Despesa sem destino identificável vai em "Outros".
  */
 window.FINANCAS = {
-  atualizadoEm: '2026-11-06',
+  atualizadoEm: '2026-11-06', // Pix de R$ 300 da Kakau + troco movidos para Outros a pedido
   extratos: [
     { conta: 'Nubank (conta)', de: '2026-11-01', ate: '2026-11-06' },
   ],
@@ -38,17 +38,17 @@ window.FINANCAS = {
       obs: 'Uber / inDrive / transporte' },
 
     // ---------------- 03/11 ----------------
-    { data: '2026-11-03', valor: -300.00, tipo: 'Pix enviado', nome: 'Ana Klara Souza Silva', categoria: 'Transporte',
-      obs: 'Kakau: carteira de táxi, mais Uber',
+    { data: '2026-11-03', valor: -300.00, tipo: 'Pix enviado', nome: 'Ana Klara Souza Silva', categoria: 'Outros',
+      obs: 'Kakau: carteira de táxi, mais Uber (pouca parte foi Uber)',
       nota: 'Voltaram R$ 42,44 de troco em 04/11; custo real R$ 257,56' },
     { data: '2026-11-03', valor: -17.00, tipo: 'Débito', nome: 'Nosso Gás e Água', categoria: 'Contas da casa',
       obs: 'galão de água' },
     { data: '2026-11-03', valor: -17.98, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
 
     // ---------------- 04/11 ----------------
-    { data: '2026-11-04', valor: 42.44, tipo: 'Pix recebido', nome: 'Ana Klara Souza Silva', categoria: 'Transporte',
+    { data: '2026-11-04', valor: 42.44, tipo: 'Pix recebido', nome: 'Ana Klara Souza Silva', categoria: 'Outros',
       obs: 'troco dos 300 que mandei pra ela',
-      nota: 'Troco do Pix de R$ 300 (03/11): abate o gasto com transporte, não é renda' },
+      nota: 'Troco do Pix de R$ 300 (03/11): abate o gasto em Outros, não é renda' },
     { data: '2026-11-04', valor: -78.05, tipo: 'Pix enviado', nome: '99 Food', categoria: 'Alimentação',
       obs: 'Burger King' },
 
