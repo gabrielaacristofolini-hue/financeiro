@@ -97,7 +97,7 @@
     const f = window.FINANCAS || {};
     const extratos = (f.extratos || []).map(e => `${e.conta}: ${dataBR(e.de)} a ${dataBR(e.ate)}`).join(' · ');
     $('fonteDados').textContent = DESPESAS.length
-      ? `${extratos || 'Extratos'} · ${DESPESAS.length} despesas`
+      ? `${extratos || 'Extratos'} · ${DESPESAS.filter(t => t.valor < 0).length} despesas`
       : 'Nenhuma despesa em dados/transacoes.js';
     $('selMes').innerHTML = '<option value="">Todos os meses</option>' +
       MESES_DADOS.slice().reverse().map(m => `<option value="${m}">${rotuloMesLongo(m)}${MESES_COMPLETOS.includes(m) ? '' : ' (incompleto)'}</option>`).join('');
@@ -145,7 +145,7 @@
     const vOutros = soma(outros);
     $('kpiOutros').textContent = moeda(vOutros);
     $('kpiOutrosNota').textContent = outros.length
-      ? `${pct.format(vOutros / total)} do total · ${outros.length} despesas sem destino conhecido`
+      ? `${pct.format(vOutros / total)} do total · ${outros.length} ${outros.length > 1 ? 'despesas' : 'despesa'} sem destino conhecido`
       : 'tudo categorizado';
   }
 
@@ -325,7 +325,7 @@
         <span class="r-nome" title="${escapar(g.chave)}">${escapar(g.chave)}</span>
         <span class="r-valor">${moeda(g.total)}</span>
         <span class="r-barra"><i style="width:${(g.total / max * 100).toFixed(1)}%"></i></span>
-        <span class="r-meta">${escapar(g.itens[0].categoria)} · ${g.qtd} ${g.qtd > 1 ? 'despesas' : 'despesa'}</span>
+        <span class="r-meta">${escapar(g.itens[0].categoria)} · ${g.qtd} ${g.qtd > 1 ? 'lançamentos' : 'lançamento'}${g.itens.find(t => t.obs) ? ` · “${escapar(g.itens.find(t => t.obs).obs)}”` : ''}</span>
       </li>`).join('') : '<li class="vazio">Sem gastos no período.</li>';
   }
 
@@ -352,12 +352,12 @@
     const busca = normalizar(estado.busca).trim();
     let linhas = lista.slice().sort((a, b) => b.data.localeCompare(a.data) || a.valor - b.valor);
     if (estado.categoria) linhas = linhas.filter(t => t.categoria === estado.categoria);
-    if (busca) linhas = linhas.filter(t => normalizar(`${t.nome} ${t.tipo} ${t.categoria}`).includes(busca));
+    if (busca) linhas = linhas.filter(t => normalizar(`${t.nome} ${t.tipo} ${t.categoria} ${t.obs || ''} ${t.nota || ''}`).includes(busca));
 
     $('corpoTransacoes').innerHTML = linhas.length ? linhas.map(t => `
       <tr>
         <td class="data">${dataBR(t.data).slice(0, 5)}<span class="ano">${dataBR(t.data).slice(5)}</span></td>
-        <td class="desc">${escapar(t.nome)}<small>${escapar(t.tipo)}</small></td>
+        <td class="desc">${escapar(t.nome)}<small>${escapar(t.tipo)}</small>${t.obs ? `<span class="obs">“${escapar(t.obs)}”</span>` : ''}${t.nota ? `<span class="nota">↔ ${escapar(t.nota)}</span>` : ''}</td>
         <td class="cat">${escapar(t.categoria)}</td>
         <td class="num ${t.valor > 0 ? 'valor-pos' : ''}">${moeda(t.valor)}</td>
       </tr>`).join('') : '<tr><td colspan="4" class="vazio">Nenhuma despesa encontrada.</td></tr>';
