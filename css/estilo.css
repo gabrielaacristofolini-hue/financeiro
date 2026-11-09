@@ -30,7 +30,7 @@ body {
 h1, h2, p { margin: 0; }
 
 .folha {
-  max-width: 1080px;
+  max-width: 1280px;
   margin: 0 auto;
   background: var(--folha);
   border: 1px solid var(--linha);
@@ -46,7 +46,7 @@ h1 { font-size: 36px; font-weight: 700; color: var(--verde); letter-spacing: -.0
 .mes-caixa strong, .mes-caixa select { border: 1px solid var(--linha); font: inherit; padding: 8px 22px; font-weight: 400; background: var(--folha); color: var(--texto); min-width: 170px; text-align: center; }
 
 /* ---------- caixas superiores ---------- */
-.grade-topo { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: stretch; margin-bottom: 28px; }
+.grade-topo { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 24px; align-items: stretch; margin-bottom: 28px; }
 .caixa { border: 1px solid var(--linha-forte); min-width: 0; }
 .faixa { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; justify-content: space-between; color: #fff; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; padding: 10px 14px; }
 .faixa-verde { background: var(--verde); }
@@ -62,8 +62,8 @@ h1 { font-size: 36px; font-weight: 700; color: var(--verde); letter-spacing: -.0
 
 /* ---------- pizza ---------- */
 .titulo-pizza { font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; text-align: center; padding: 14px 14px 0; }
-.pizza-corpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 24px; align-items: center; padding: 14px 20px 18px; }
-.pizza { max-width: 320px; width: 100%; justify-self: center; }
+.pizza-corpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 36px; align-items: center; padding: 16px 28px 20px; }
+.pizza { max-width: 350px; width: 100%; justify-self: center; }
 .pizza svg { display: block; width: 100%; height: auto; overflow: visible; }
 .fatia { cursor: pointer; transition: opacity .12s; }
 .fatia:hover { opacity: .82; }
@@ -92,6 +92,7 @@ h1 { font-size: 36px; font-weight: 700; color: var(--verde); letter-spacing: -.0
 .tabela thead th { background: var(--azul-claro); font-weight: 600; white-space: nowrap; }
 .tabela .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tabela tfoot td { font-weight: 700; background: var(--cabecalho); border-top: 1px solid var(--linha-forte); border-bottom: 0; }
+.tabela-lancamentos .obs { width: 42%; }
 .tabela-categorias tbody tr { cursor: pointer; }
 .tabela-categorias tbody tr:hover td { background: var(--cabecalho); }
 .tabela-categorias tr.ativa td { background: var(--azul-claro); font-weight: 600; }
