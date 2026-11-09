@@ -1,5 +1,5 @@
 /*
- * Relatório de despesas — página única, só visualização.
+ * Meus Gastos — página única, só visualização, com foco nas despesas.
  * Os dados vêm de dados/transacoes.js (window.FINANCAS), processados no chat.
  */
 (function () {
@@ -7,252 +7,216 @@
 
   // ---------- regras ----------
   const RECEITAS = ['Salário e renda', 'Recebimentos'];
-  const NEUTRAS = ['Investimentos', 'Transferência entre contas'];   // não contam como gasto nem renda
+  const NEUTRAS = ['Investimentos', 'Transferência entre contas'];
   const FIXAS = ['Moradia', 'Contas da casa', 'Assinaturas', 'Educação', 'Academia'];
-  const OUTROS = 'Outros';                                            // gasto sem destino conhecido
+  const OUTROS = 'Outros';
+
+  // A cor pertence à categoria e não muda quando o ranking muda.
+  // Categoria nova ganha uma cor aqui quando entrar nos dados.
+  const CORES = {
+    'Moradia': '#2a78d6',
+    'Mercado': '#eb6834',
+    'Contas da casa': '#1baf7a',
+    'Fatura do cartão': '#eda100',
+    [OUTROS]: '#9a9c95',
+    'Alimentação': '#e34948',
+    'Lazer': '#e87ba4',
+    'Transporte': '#6250d6',
+    'Compras': '#008300',
+    'Pets': '#8a5a2b',
+    'Bar e cigarro': '#1f3a5f',
+    'Saúde': '#4fc1e0',
+  };
+  const corDe = c => CORES[c] || '#c9cbc4';
 
   const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-  const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-  const SEMANA_LONGA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
   const $ = id => document.getElementById(id);
   const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const moeda = v => brl.format(v);
-  const inteiro = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-  const pct = v => Math.round(v * 100) + '%';
+  const pct = v => (v * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const dm = iso => iso.slice(8) + '/' + iso.slice(5, 7);
+  const nomeMes = m => { const t = MESES[+m.slice(5) - 1]; return `${t[0].toUpperCase()}${t.slice(1)} de ${m.slice(0, 4)}`; };
 
   // ---------- dados ----------
   const F = window.FINANCAS || { transacoes: [], extratos: [] };
-  const TODAS = F.transacoes.map(t => {
-    const natureza = NEUTRAS.includes(t.categoria) ? 'neutra' : RECEITAS.includes(t.categoria) ? 'receita' : 'despesa';
-    // quanto soma no total (troco/reembolso numa categoria de gasto abate o gasto)
-    const contrib = natureza === 'despesa' ? -t.valor : natureza === 'receita' ? t.valor : 0;
-    return { ...t, natureza, contrib, mes: t.data.slice(0, 7) };
-  }).sort((a, b) => a.data.localeCompare(b.data));
-  const LISTA_MESES = [...new Set(TODAS.map(t => t.mes))].sort();
+  // Só despesas: valor que volta numa categoria de gasto (troco, reembolso) abate o gasto.
+  const GASTOS = F.transacoes
+    .filter(t => !NEUTRAS.includes(t.categoria) && !RECEITAS.includes(t.categoria))
+    .map(t => ({ ...t, gasto: -t.valor, mes: t.data.slice(0, 7) }));
+  const LISTA_MESES = [...new Set(GASTOS.map(t => t.mes))].sort();
 
-  const estado = { mes: LISTA_MESES[LISTA_MESES.length - 1] || '', categoria: '', dia: 0 };
+  const estado = { mes: LISTA_MESES[LISTA_MESES.length - 1] || '', categoria: '' };
 
-  const soma = l => l.reduce((s, t) => s + t.contrib, 0);
-  function agrupar(lista, chave) {
+  const soma = l => l.reduce((s, t) => s + t.gasto, 0);
+  const qtd = l => l.filter(t => t.valor < 0).length;
+
+  function porCategoria(lista) {
     const m = new Map();
     for (const t of lista) {
-      const k = chave(t);
-      const g = m.get(k) || { chave: k, total: 0, itens: [] };
-      g.total += t.contrib; g.itens.push(t); m.set(k, g);
+      if (!m.has(t.categoria)) m.set(t.categoria, []);
+      m.get(t.categoria).push(t);
     }
-    return [...m.values()].sort((a, b) => b.total - a.total);
+    return [...m].map(([nome, itens]) => ({ nome, itens, total: soma(itens) }))
+      .filter(g => g.total > 0.005)
+      .sort((a, b) => b.total - a.total);
   }
-  const qtdGastos = l => l.filter(t => t.valor < 0).length;
 
-  // ---------- dica (tooltip) ----------
+  // ---------- dica ao passar o mouse ----------
   const dica = $('dica');
-  function mostrarDica(e, html) {
-    dica.innerHTML = html; dica.hidden = false;
-    const x = Math.min(e.clientX + 14, innerWidth - dica.offsetWidth - 8);
-    const y = e.clientY + 18 + dica.offsetHeight > innerHeight ? e.clientY - dica.offsetHeight - 12 : e.clientY + 18;
-    dica.style.left = x + 'px'; dica.style.top = y + 'px';
+  function posicionarDica(e) {
+    dica.style.left = Math.min(e.clientX + 14, innerWidth - dica.offsetWidth - 8) + 'px';
+    dica.style.top = (e.clientY + 18 + dica.offsetHeight > innerHeight ? e.clientY - dica.offsetHeight - 10 : e.clientY + 18) + 'px';
   }
-  const esconderDica = () => { dica.hidden = true; };
   function comDica(el, html) {
-    el.addEventListener('mousemove', e => mostrarDica(e, html));
-    el.addEventListener('mouseleave', esconderDica);
+    el.addEventListener('mouseenter', () => { dica.innerHTML = html; dica.hidden = false; });
+    el.addEventListener('mousemove', posicionarDica);
+    el.addEventListener('mouseleave', () => { dica.hidden = true; });
   }
 
   // ---------- render ----------
+  function alternar(categoria) {
+    estado.categoria = estado.categoria === categoria ? '' : categoria;
+    render();
+  }
+
   function render() {
-    const doMes = TODAS.filter(t => t.mes === estado.mes);
-    const gastos = doMes.filter(t => t.natureza === 'despesa');
-    const categorias = agrupar(gastos, t => t.categoria).filter(g => g.total > 0.005);
-    const total = soma(gastos);
-
-    capa(doMes, gastos, categorias, total);
-    barras(categorias, total);
-    fixoVariavel(gastos, total);
-    semDestino(gastos, total);
-    ranking(gastos);
-    diaADia(gastos);
-    lancamentos(gastos);
+    const lista = GASTOS.filter(t => t.mes === estado.mes);
+    const grupos = porCategoria(lista);
+    const total = grupos.reduce((s, g) => s + g.total, 0);
+    if (estado.categoria && !grupos.some(g => g.nome === estado.categoria)) estado.categoria = '';
+    topo();
+    resumo(lista, grupos, total);
+    pizza(grupos, total);
+    legenda(grupos, total);
+    categorias(grupos, total);
+    lancamentos(lista);
   }
 
-  function periodoDoMes() {
+  function topo() {
     const ext = (F.extratos || []).filter(e => e.de.slice(0, 7) <= estado.mes && e.ate.slice(0, 7) >= estado.mes);
-    const de = ext.map(e => e.de < estado.mes + '-01' ? estado.mes + '-01' : e.de).sort()[0];
-    const ate = ext.map(e => e.ate.slice(0, 7) > estado.mes ? estado.mes + '-31' : e.ate).sort().slice(-1)[0];
-    return { de, ate };
+    const texto = ext.map(e => `${dm(e.de)} a ${dm(e.ate)}`).join(', ');
+    $('periodo').textContent = texto ? `Para onde foi o dinheiro de ${texto}` : 'Para onde foi o dinheiro';
+    $('mesTexto').textContent = estado.mes ? nomeMes(estado.mes) : '—';
+    $('rodape').textContent = F.atualizadoEm ? `Atualizado em ${F.atualizadoEm.split('-').reverse().join('/')}` : '';
   }
 
-  function capa(doMes, gastos, categorias, total) {
-    const [a, n] = estado.mes.split('-').map(Number);
-    $('mesNome').textContent = MESES[n - 1] || '—';
-    $('anoNome').textContent = a || '';
-    $('capaTotal').textContent = moeda(total);
-    const { de, ate } = periodoDoMes();
-    const ultimo = new Date(a, n, 0).getDate();
-    const aberto = ate && +ate.slice(8) < ultimo;
-    $('capaSub').textContent = de
-      ? `gastos de ${dm(de)} a ${dm(ate)}${aberto ? ' · mês ainda em andamento' : ''}`
-      : 'sem dados neste mês';
-
-    const receitas = soma(doMes.filter(t => t.natureza === 'receita'));
-    const maior = gastos.filter(t => t.valor < 0).sort((x, y) => x.valor - y.valor)[0];
-    const itens = [
-      [qtdGastos(gastos), '', 'gastos no mês'],
-      [categorias.length, '', 'categorias'],
-      [receitas ? Math.round(total / receitas * 100) : '—', receitas ? '%' : '', 'do que entrou'],
-      [maior ? inteiro(-maior.valor).replace('R$ ', '') : '—', maior ? 'R$' : '', maior ? `maior gasto · ${maior.obs || maior.nome}` : 'maior gasto'],
-    ];
-    $('numeros').innerHTML = itens.map(([v, u, r]) =>
-      `<div><strong>${u === 'R$' ? '<small class="antes">R$</small>' : ''}${esc(v)}${u && u !== 'R$' ? `<small>${u}</small>` : ''}</strong><span>${esc(r)}</span></div>`).join('');
-
-    $('atualizado').textContent = F.atualizadoEm ? `atualizado em ${F.atualizadoEm.split('-').reverse().join('/')}` : '';
+  function resumo(lista, grupos, total) {
+    const fixo = soma(lista.filter(t => FIXAS.includes(t.categoria)));
+    const outros = soma(lista.filter(t => t.categoria === OUTROS));
+    const maior = grupos[0];
+    const linha = (rotulo, valor, nota, cls) =>
+      `<tr class="${cls || ''}"><td>${esc(rotulo)}${nota ? `<small>${esc(nota)}</small>` : ''}</td><td>${esc(valor)}</td></tr>`;
+    $('resumo').innerHTML =
+      linha('Total gasto', moeda(total), `${qtd(lista)} gastos`, 'total') +
+      linha('Gastos fixos', moeda(fixo), total ? pct(fixo / total) + ' do total' : '') +
+      linha('Gastos variáveis', moeda(total - fixo), total ? pct((total - fixo) / total) + ' do total' : '') +
+      linha('Maior categoria', maior ? moeda(maior.total) : '—', maior ? maior.nome : '') +
+      linha('Sem destino (Outros)', moeda(outros), total ? pct(outros / total) + ' do total' : '');
   }
 
-  // 01 — barras por categoria
-  function barras(categorias, total) {
-    const max = categorias.length ? categorias[0].total : 1;
-    const caixa = $('barras');
+  function corTexto(hex) {
+    const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#1c2321' : '#ffffff';
+  }
+
+  function pizza(grupos, total) {
+    const caixa = $('pizza');
     caixa.classList.toggle('filtrando', !!estado.categoria);
-    caixa.innerHTML = categorias.map(g => `
-      <div class="barra${g.chave === OUTROS ? ' outros' : ''}${g.chave === estado.categoria ? ' ativa' : ''}" data-cat="${esc(g.chave)}" role="button" tabindex="0">
-        <div><span class="b-valor">${inteiro(g.total)}</span><span class="b-pct">${pct(g.total / total)}</span></div>
-        <div class="b-trilho"><div class="b-cheio" style="--p:${(g.total / max).toFixed(4)}"></div></div>
-        <div class="b-nome">${esc(g.chave)}</div>
-      </div>`).join('') || '<p class="vazio-msg">Nenhum gasto neste mês.</p>';
-    caixa.querySelectorAll('.barra').forEach(el => {
-      const g = categorias.find(c => c.chave === el.dataset.cat);
-      const q = qtdGastos(g.itens);
-      comDica(el, `<b>${esc(g.chave)}</b>${moeda(g.total)} · ${pct(g.total / total)} do total<br>${q} ${q === 1 ? 'gasto' : 'gastos'}`);
-      const escolher = () => {
-        estado.categoria = estado.categoria === g.chave ? '' : g.chave;
-        render();
-        if (estado.categoria) $('lancamentos').closest('.secao').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-      el.addEventListener('click', escolher);
-      el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); escolher(); } });
+    if (!total) { caixa.innerHTML = ''; return; }
+    const C = 160, R = 152;
+    const ponto = (r, a) => `${(C + r * Math.cos(a)).toFixed(2)} ${(C + r * Math.sin(a)).toFixed(2)}`;
+    let a = -Math.PI / 2, svg = '';
+    for (const g of grupos) {
+      const frac = g.total / total, a1 = a + frac * 2 * Math.PI;
+      const cor = corDe(g.nome);
+      const ativa = g.nome === estado.categoria ? ' ativa' : '';
+      const forma = frac > 0.9999
+        ? `<circle cx="${C}" cy="${C}" r="${R}" fill="${cor}"/>`
+        : `<path d="M${C} ${C} L${ponto(R, a)} A${R} ${R} 0 ${a1 - a > Math.PI ? 1 : 0} 1 ${ponto(R, a1)} Z" fill="${cor}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
+      svg += `<g class="fatia${ativa}" data-cat="${esc(g.nome)}">${forma}</g>`;
+      a = a1;
+    }
+    // Percentual escrito dentro das fatias em que cabe; as menores ficam na legenda.
+    a = -Math.PI / 2;
+    for (const g of grupos) {
+      const frac = g.total / total, meio = a + frac * Math.PI;
+      if (frac >= 0.04) {
+        const [x, y] = ponto(R * 0.68, meio).split(' ');
+        svg += `<text class="fatia-rotulo" x="${x}" y="${y}" fill="${corTexto(corDe(g.nome))}" text-anchor="middle" dominant-baseline="central">${Math.round(frac * 100)}%</text>`;
+      }
+      a += frac * 2 * Math.PI;
+    }
+    caixa.innerHTML = `<svg viewBox="0 0 320 320" role="img" aria-label="Gráfico de pizza com todos os gastos por categoria">${svg}</svg>`;
+    caixa.querySelectorAll('.fatia').forEach(el => {
+      const g = grupos.find(x => x.nome === el.dataset.cat);
+      comDica(el, `<b>${esc(g.nome)}</b>${moeda(g.total)} · ${pct(g.total / total)}`);
+      el.addEventListener('click', () => { dica.hidden = true; alternar(g.nome); });
     });
   }
 
-  // 02 — meia-lua fixo x variável
-  function fixoVariavel(gastos, total) {
-    const fixo = soma(gastos.filter(t => FIXAS.includes(t.categoria)));
-    const variavel = total - fixo;
-    const f = total ? fixo / total : 0;
-    const cx = 120, cy = 120, R = 112, r = 78;
-    const ponto = (raio, ang) => `${(cx + raio * Math.cos(ang)).toFixed(2)},${(cy + raio * Math.sin(ang)).toFixed(2)}`;
-    const setor = (a0, a1) => `M${ponto(R, a0)} A${R},${R} 0 0 1 ${ponto(R, a1)} L${ponto(r, a1)} A${r},${r} 0 0 0 ${ponto(r, a0)} Z`;
-    const meio = Math.PI + f * Math.PI;
-    $('meiaLua').innerHTML =
-      (f > 0 ? `<path d="${setor(Math.PI, meio)}" fill="#111"/>` : '') +
-      (f < 1 ? `<path d="${setor(meio, 2 * Math.PI)}" fill="#f4b400"/>` : '') +
-      (f > 0 && f < 1 ? `<line x1="${ponto(r - 2, meio).split(',')[0]}" y1="${ponto(r - 2, meio).split(',')[1]}" x2="${ponto(R + 2, meio).split(',')[0]}" y2="${ponto(R + 2, meio).split(',')[1]}" stroke="#fff" stroke-width="3"/>` : '');
-    $('pctFixo').textContent = total ? pct(f) : '—';
-    const fixasPresentes = [...new Set(gastos.filter(t => FIXAS.includes(t.categoria)).map(t => t.categoria))];
-    $('fixoLegenda').innerHTML = `
-      <div><b>${moeda(fixo)}</b><span>Fixo${fixasPresentes.length ? ': ' + esc(fixasPresentes.join(', ').toLowerCase()) : ''}</span></div>
-      <div class="var"><b>${moeda(variavel)}</b><span>Variável: o resto (mercado, comida, lazer, transporte…)</span></div>`;
+  function legenda(grupos, total) {
+    const ul = $('legenda');
+    ul.classList.toggle('filtrando', !!estado.categoria);
+    ul.innerHTML = grupos.map(g => `
+      <li><button type="button" class="${g.nome === estado.categoria ? 'ativa' : ''}" data-cat="${esc(g.nome)}">
+        <span class="ponto" style="background:${corDe(g.nome)}"></span>
+        <span class="leg-nome">${esc(g.nome)}</span>
+        <span class="leg-valor">${moeda(g.total)}</span>
+        <span class="leg-pct">${Math.round(g.total / total * 100)}%</span>
+      </button></li>`).join('');
+    ul.querySelectorAll('button').forEach(b => b.addEventListener('click', () => alternar(b.dataset.cat)));
   }
 
-  // 03 — sem destino (Outros)
-  function semDestino(gastos, total) {
-    const itens = gastos.filter(t => t.categoria === OUTROS).sort((a, b) => a.data.localeCompare(b.data));
-    const v = soma(itens);
-    $('outrosValor').textContent = moeda(v);
-    $('outrosPct').textContent = itens.length
-      ? `${pct(v / total)} dos gastos · ${qtdGastos(itens)} ${qtdGastos(itens) === 1 ? 'gasto' : 'gastos'} sem destino definido`
-      : 'Tudo tem destino conhecido neste mês.';
-    $('outrosLista').innerHTML = itens.map(t => `
-      <li>
-        <span class="o-nome">${dm(t.data)} · ${esc(t.nome)}</span>
-        <span class="o-valor ${t.valor > 0 ? 'o-volta' : ''}">${t.valor > 0 ? '− ' + moeda(t.valor) : moeda(-t.valor)}</span>
-        ${t.obs || t.nota ? `<span class="o-obs">${esc(t.obs || '')}${t.obs && t.nota ? ' · ' : ''}${esc(t.nota || '')}</span>` : ''}
-      </li>`).join('');
-  }
-
-  // 04 — ranking por estabelecimento/pessoa
-  function ranking(gastos) {
-    const lista = estado.categoria ? gastos.filter(t => t.categoria === estado.categoria) : gastos;
-    $('subOnde').textContent = estado.categoria ? `Só ${estado.categoria}` : 'Por estabelecimento ou pessoa';
-    const grupos = agrupar(lista, t => t.nome).filter(g => g.total > 0.005).slice(0, 10);
-    $('ranking').innerHTML = grupos.map(g => {
-      const obs = [...new Set(g.itens.map(t => t.obs).filter(Boolean))].join(' · ');
-      return `<li>
-        <span class="r-nome" title="${esc(g.chave)}">${esc(g.chave)}</span>
-        <span class="r-valor">${moeda(g.total)}</span>
-        <span class="r-meta"><span class="chip">${esc(g.itens[0].categoria)}</span>${qtdGastos(g.itens)}×${obs ? ' · ' + esc(obs) : ''}</span>
-      </li>`;
-    }).join('') || '<li class="vazio-msg">Nenhum gasto.</li>';
-  }
-
-  // 05 — dia a dia
-  function diaADia(gastos) {
-    const [a, n] = estado.mes.split('-').map(Number);
-    const ultimo = new Date(a, n, 0).getDate();
-    const { ate } = periodoDoMes();
-    const ultimoComDado = ate ? +ate.slice(8) : ultimo;
-    const porDia = Array.from({ length: ultimo }, (_, i) => gastos.filter(t => +t.data.slice(8) === i + 1));
-    const valores = porDia.map(soma);
-    const max = Math.max(1, ...valores);
-    const caixa = $('dias');
-    caixa.innerHTML = valores.map((v, i) => {
-      const d = i + 1, sem = new Date(a, n - 1, d).getDay();
-      const cls = ['dia', v > 0.005 ? 'com' : 'vazio', d > ultimoComDado ? 'futuro' : '', sem % 6 === 0 ? 'fds' : '', estado.dia === d ? 'sel' : ''].join(' ');
-      const rot = v > 0.005 ? (v >= 1000 ? (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k' : Math.round(v)) : '';
-      return `<div class="${cls}" data-dia="${d}"><span class="d-valor">${rot}</span><div class="d-trilho"><div class="d-cheio" style="--p:${Math.max(0, v / max).toFixed(4)}"></div></div><span class="d-num">${d}</span></div>`;
+  function categorias(grupos, total) {
+    $('categorias').innerHTML = grupos.map(g => {
+      const lugares = [...new Set(g.itens.map(t => t.nome))];
+      const onde = lugares.slice(0, 3).join(', ') + (lugares.length > 3 ? ` e mais ${lugares.length - 3}` : '');
+      return `<tr class="${g.nome === estado.categoria ? 'ativa' : ''}" data-cat="${esc(g.nome)}" tabindex="0">
+        <td><span class="cat-celula"><span class="ponto" style="background:${corDe(g.nome)}"></span>${esc(g.nome)}</span></td>
+        <td class="onde so-largo">${esc(onde)}</td>
+        <td class="so-largo">${FIXAS.includes(g.nome) ? 'Fixo' : 'Variável'}</td>
+        <td class="num so-largo">${qtd(g.itens)}</td>
+        <td class="num">${moeda(g.total)}</td>
+        <td class="num">${pct(g.total / total)}</td>
+      </tr>`;
     }).join('');
-    const detalhe = d => {
-      const itens = porDia[d - 1];
-      const sem = SEMANA_LONGA[new Date(a, n - 1, d).getDay()];
-      if (d > ultimoComDado) return `<b>${String(d).padStart(2, '0')}/${String(n).padStart(2, '0')}</b> · ${sem} · ainda não está no extrato`;
-      if (!itens.length) return `<b>${String(d).padStart(2, '0')}/${String(n).padStart(2, '0')}</b> · ${sem} · nenhum gasto`;
-      return `<b>${String(d).padStart(2, '0')}/${String(n).padStart(2, '0')} · ${sem} · ${moeda(soma(itens))}</b> — ` +
-        itens.map(t => `${esc(t.obs || t.nome)} (${t.valor > 0 ? '−' : ''}${moeda(Math.abs(t.valor))})`).join(', ');
-    };
-    caixa.querySelectorAll('.dia').forEach(el => {
-      const d = +el.dataset.dia;
-      comDica(el, detalhe(d).replace(/ — /, '<br>'));
-      el.addEventListener('click', () => { estado.dia = estado.dia === d ? 0 : d; diaADia(gastos); });
+    const totalQtd = grupos.reduce((s, g) => s + qtd(g.itens), 0);
+    $('categoriasTotal').innerHTML = `<tr><td>Total</td><td class="so-largo"></td><td class="so-largo"></td><td class="num so-largo">${totalQtd}</td><td class="num">${moeda(total)}</td><td class="num">100,0%</td></tr>`;
+    $('categorias').querySelectorAll('tr').forEach(tr => {
+      tr.addEventListener('click', () => alternar(tr.dataset.cat));
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(tr.dataset.cat); } });
     });
-    $('diaDetalhe').innerHTML = estado.dia ? detalhe(estado.dia) : `Maior dia: <b>${dm(estado.mes + '-' + String(valores.indexOf(Math.max(...valores)) + 1).padStart(2, '0'))} · ${moeda(Math.max(...valores))}</b>`;
   }
 
-  // 06 — lançamentos agrupados por dia
-  function lancamentos(gastos) {
-    const lista = estado.categoria ? gastos.filter(t => t.categoria === estado.categoria) : gastos;
-    const filtro = $('filtroAtivo');
+  function lancamentos(lista) {
+    const filtrada = (estado.categoria ? lista.filter(t => t.categoria === estado.categoria) : lista)
+      .slice().sort((a, b) => b.data.localeCompare(a.data) || a.valor - b.valor);
+    const filtro = $('filtro');
     filtro.hidden = !estado.categoria;
-    filtro.innerHTML = estado.categoria ? `Mostrando só <span class="chip">${esc(estado.categoria)}</span> ${moeda(soma(lista))} <button type="button" id="limpar">ver tudo ✕</button>` : '';
-    if (estado.categoria) $('limpar').addEventListener('click', () => { estado.categoria = ''; render(); });
-    $('subLanc').textContent = `${qtdGastos(lista)} gastos · ${moeda(soma(lista))}${lista.some(t => t.valor > 0) ? ' (trocos/reembolsos já descontados)' : ''}`;
+    filtro.innerHTML = estado.categoria ? `Só ${esc(estado.categoria)} <button type="button" class="limpar" id="limpar">ver todos</button>` : '';
+    if (estado.categoria) $('limpar').addEventListener('click', () => alternar(estado.categoria));
 
-    const dias = [...new Set(lista.map(t => t.data))].sort().reverse();
-    $('lancamentos').innerHTML = dias.map(d => {
-      const itens = lista.filter(t => t.data === d).sort((x, y) => x.valor - y.valor);
-      const sem = SEMANA[new Date(d + 'T12:00').getDay()];
-      return `<div class="dia-grupo">
-        <div class="g-data">${dm(d)}<small>${sem} · ${moeda(soma(itens))}</small></div>
-        <div>${itens.map(t => `
-          <div class="lanc">
-            <span class="l-nome">${esc(t.nome)}</span>
-            <span class="l-valor ${t.valor > 0 ? 'volta' : ''}">${t.valor > 0 ? '+ ' + moeda(t.valor) : moeda(-t.valor)}</span>
-            <span class="l-meta"><span class="chip">${esc(t.categoria)}</span>${esc(t.tipo)}${t.valor > 0 ? ' · voltou, abate do gasto' : ''}</span>
-            ${t.obs ? `<span class="l-obs">“${esc(t.obs)}”</span>` : ''}
-            ${t.nota ? `<span class="l-nota">↳ ${esc(t.nota)}</span>` : ''}
-          </div>`).join('')}
-        </div>
-      </div>`;
-    }).join('') || '<p class="vazio-msg">Nenhum lançamento.</p>';
+    $('lancamentos').innerHTML = filtrada.map(t => `
+      <tr>
+        <td class="data">${dm(t.data)}</td>
+        <td class="desc">${esc(t.nome)}<span class="tipo">${esc(t.tipo)}</span></td>
+        <td class="cat"><span class="cat-celula"><span class="ponto" style="background:${corDe(t.categoria)}"></span>${esc(t.categoria)}</span></td>
+        <td class="obs">${t.obs ? esc(t.obs) : '<span class="obs-vazia">—</span>'}${t.nota ? `<span class="nota">↳ ${esc(t.nota)}</span>` : ''}</td>
+        <td class="num ${t.valor > 0 ? 'volta' : ''}">${t.valor > 0 ? '− ' + moeda(t.valor) : moeda(-t.valor)}</td>
+      </tr>`).join('');
+    $('lancamentosTotal').innerHTML = `<tr><td colspan="4">Total</td><td class="num">${moeda(soma(filtrada))}</td></tr>`;
   }
 
   // ---------- início ----------
   if (LISTA_MESES.length > 1) {
-    $('seletorMes').hidden = false;
-    $('selMes').innerHTML = LISTA_MESES.slice().reverse().map(m => `<option value="${m}">${MESES[+m.slice(5) - 1]} de ${m.slice(0, 4)}</option>`).join('');
-    $('selMes').value = estado.mes;
-    $('selMes').addEventListener('change', e => { estado.mes = e.target.value; estado.categoria = ''; estado.dia = 0; render(); });
+    $('mesTexto').hidden = true;
+    const sel = $('selMes');
+    sel.hidden = false;
+    sel.innerHTML = LISTA_MESES.slice().reverse().map(m => `<option value="${m}">${nomeMes(m)}</option>`).join('');
+    sel.value = estado.mes;
+    sel.addEventListener('change', e => { estado.mes = e.target.value; estado.categoria = ''; render(); });
   }
-  addEventListener('scroll', esconderDica, { passive: true });
   render();
 })();

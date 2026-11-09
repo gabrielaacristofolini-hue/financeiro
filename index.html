@@ -4,119 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Relatório de Despesas</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f4b400'/%3E%3Crect x='6' y='14' width='5' height='12' fill='%23111'/%3E%3Crect x='13.5' y='8' width='5' height='18' fill='%23111'/%3E%3Crect x='21' y='18' width='5' height='8' fill='%23111'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <title>Meus Gastos</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232a78d6'/%3E%3Cpath d='M16 16V2a14 14 0 0 1 13.3 18.3z' fill='%23eb6834'/%3E%3Cpath d='M16 16l13.3 4.3A14 14 0 0 1 16 30z' fill='%231baf7a'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
+  <div class="folha">
+    <header class="topo">
+      <div>
+        <h1>Meus Gastos</h1>
+        <p class="subtitulo" id="periodo">Carregando…</p>
+      </div>
+      <div class="mes-caixa">
+        <span>Mês:</span>
+        <strong id="mesTexto">—</strong>
+        <select id="selMes" aria-label="Escolher mês" hidden></select>
+      </div>
+    </header>
 
-  <!-- CAPA -->
-  <header class="capa">
-    <div class="capa-amarela">
-      <div class="etiqueta">Relatório de despesas</div>
-      <h1 class="capa-titulo"><span id="mesNome">—</span><small id="anoNome"></small></h1>
-      <p class="capa-total" id="capaTotal">R$ —</p>
-      <p class="capa-sub" id="capaSub">carregando…</p>
-      <label class="seletor-mes" id="seletorMes" hidden>
-        <span>mês</span>
-        <select id="selMes"></select>
-      </label>
-    </div>
-    <div class="capa-preta">
-      <div class="numeros" id="numeros"></div>
-    </div>
-  </header>
-
-  <main>
-    <!-- 01 -->
-    <section class="secao fundo-amarelo">
-      <header class="secao-topo">
-        <span class="capitulo">01</span>
-        <div>
-          <h2>Para onde foi</h2>
-          <p class="secao-sub">Gastos por categoria · clique numa barra para ver os lançamentos dela</p>
-        </div>
-      </header>
-      <div class="barras" id="barras"></div>
-    </section>
-
-    <!-- 02 + 03 -->
-    <div class="dupla">
-      <section class="secao fundo-branco">
-        <header class="secao-topo">
-          <span class="capitulo">02</span>
-          <div>
-            <h2>Fixo x variável</h2>
-            <p class="secao-sub">O que se repete todo mês e o que depende de mim</p>
-          </div>
-        </header>
-        <div class="meia-lua">
-          <svg viewBox="0 0 240 130" id="meiaLua" role="img" aria-label="Proporção de despesas fixas"></svg>
-          <div class="meia-lua-num"><strong id="pctFixo">—</strong><span>fixo</span></div>
-        </div>
-        <div class="fixo-legenda" id="fixoLegenda"></div>
+    <div class="grade-topo">
+      <section class="caixa">
+        <h2 class="faixa faixa-verde">Resumo dos gastos</h2>
+        <table class="resumo"><tbody id="resumo"></tbody></table>
       </section>
 
-      <section class="secao fundo-preto">
-        <header class="secao-topo">
-          <span class="capitulo">03</span>
-          <div>
-            <h2>Sem destino</h2>
-            <p class="secao-sub">O que está em “Outros”</p>
-          </div>
-        </header>
-        <p class="destaque-amarelo" id="outrosValor">—</p>
-        <p class="outros-pct" id="outrosPct"></p>
-        <ul class="outros-lista" id="outrosLista"></ul>
+      <section class="caixa caixa-pizza">
+        <h2 class="titulo-pizza">Todos os gastos por categoria</h2>
+        <div class="pizza-corpo">
+          <div class="pizza" id="pizza"></div>
+          <ul class="legenda" id="legenda"></ul>
+        </div>
       </section>
     </div>
 
-    <!-- 04 -->
-    <section class="secao fundo-branco">
-      <header class="secao-topo">
-        <span class="capitulo">04</span>
-        <div>
-          <h2>Onde mais gastei</h2>
-          <p class="secao-sub" id="subOnde">Por estabelecimento ou pessoa</p>
-        </div>
-      </header>
-      <ol class="ranking" id="ranking"></ol>
+    <section class="bloco">
+      <h2 class="faixa faixa-azul">Gastos por categoria</h2>
+      <table class="tabela tabela-categorias">
+        <thead>
+          <tr><th>Categoria</th><th class="so-largo">Onde</th><th class="so-largo">Tipo</th><th class="num so-largo">Qtd.</th><th class="num">Valor</th><th class="num">%</th></tr>
+        </thead>
+        <tbody id="categorias"></tbody>
+        <tfoot id="categoriasTotal"></tfoot>
+      </table>
     </section>
 
-    <!-- 05 -->
-    <section class="secao fundo-preto">
-      <header class="secao-topo">
-        <span class="capitulo">05</span>
-        <div>
-          <h2>Dia a dia</h2>
-          <p class="secao-sub">Quanto saiu em cada dia do mês · toque num dia para ver o detalhe</p>
-        </div>
-      </header>
-      <div class="dias" id="dias"></div>
-      <p class="dia-detalhe" id="diaDetalhe">&nbsp;</p>
+    <section class="bloco">
+      <h2 class="faixa faixa-azul">
+        <span>Lançamentos</span>
+        <span class="filtro" id="filtro" hidden></span>
+      </h2>
+      <table class="tabela tabela-lancamentos">
+        <thead>
+          <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Observação</th><th class="num">Valor</th></tr>
+        </thead>
+        <tbody id="lancamentos"></tbody>
+        <tfoot id="lancamentosTotal"></tfoot>
+      </table>
     </section>
 
-    <!-- 06 -->
-    <section class="secao fundo-branco">
-      <header class="secao-topo">
-        <span class="capitulo">06</span>
-        <div>
-          <h2>Lançamentos</h2>
-          <p class="secao-sub" id="subLanc">Todos os gastos do mês, com as observações</p>
-        </div>
-      </header>
-      <div class="filtro-ativo" id="filtroAtivo" hidden></div>
-      <div class="lancamentos" id="lancamentos"></div>
-    </section>
-  </main>
-
-  <footer class="rodape">
-    <span>Relatório de despesas · dados processados no chat</span>
-    <span id="atualizado"></span>
-  </footer>
+    <footer class="rodape" id="rodape"></footer>
+  </div>
 
   <div class="dica" id="dica" hidden></div>
 

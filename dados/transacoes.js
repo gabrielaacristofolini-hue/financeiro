@@ -11,9 +11,9 @@
  * Despesa sem destino identificável vai em "Outros".
  */
 window.FINANCAS = {
-  atualizadoEm: '2026-11-06', // Pix de R$ 300 da Kakau + troco movidos para Outros a pedido
+  atualizadoEm: '2026-11-09',
   extratos: [
-    { conta: 'Nubank (conta)', de: '2026-11-01', ate: '2026-11-06' },
+    { conta: 'Nubank (conta)', de: '2026-11-01', ate: '2026-11-09' },
   ],
   transacoes: [
     // ---------------- 01/11 ----------------
@@ -65,5 +65,38 @@ window.FINANCAS = {
     // ---------------- 06/11 ----------------
     { data: '2026-11-06', valor: -44.77, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado',
       obs: 'mercado, verduras e ração' },
+    { data: '2026-11-06', valor: -99.90, tipo: 'Pix enviado', nome: 'IBI Telecom', categoria: 'Contas da casa',
+      obs: 'internet' },
+    { data: '2026-11-06', valor: -407.81, tipo: 'Boleto', nome: 'Nubank (fatura do cartão)', categoria: 'Fatura do cartão',
+      obs: 'cartão de crédito' },
+    { data: '2026-11-06', valor: -29.29, tipo: 'Boleto', nome: 'Nubank (fatura do cartão)', categoria: 'Fatura do cartão',
+      obs: 'cartão de crédito' },
+    { data: '2026-11-06', valor: -12.00, tipo: 'Débito', nome: 'MP *Carloscuba70', categoria: 'Transporte',
+      obs: 'Uber' },
+    { data: '2026-11-06', valor: -6.00, tipo: 'Débito', nome: 'Shopping Gov. Valadares', categoria: 'Alimentação',
+      obs: 'sorvete' },
+    { data: '2026-11-06', valor: -19.66, tipo: 'Débito', nome: 'Farmácia Indiana', categoria: 'Saúde',
+      obs: 'farmácia' },
+    { data: '2026-11-06', valor: -463.16, tipo: 'Débito', nome: 'Supermercados BH', categoria: 'Mercado',
+      obs: 'mercado' },
+    { data: '2026-11-06', valor: -19.00, tipo: 'Pix enviado', nome: 'Ariel Almeida Lopes de Oliveira', categoria: 'Transporte',
+      obs: 'Uber' },
+    { data: '2026-11-06', valor: -10.00, tipo: 'Débito', nome: 'Ronilson Gonçalves (bar)', categoria: 'Bar e cigarro',
+      obs: 'cigarro paiol' },
+
+    // ---------------- 07/11 ----------------
+    { data: '2026-11-07', valor: -108.71, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+
+    // ---------------- 08/11 ----------------
+    { data: '2026-11-08', valor: -22.64, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-08', valor: -88.40, tipo: 'Pix enviado', nome: 'Amazon', categoria: 'Compras',
+      obs: 'utensílios pra casa' },
+    { data: '2026-11-08', valor: -41.36, tipo: 'Pix enviado', nome: 'Ana Klara Souza Silva', categoria: 'Pets',
+      obs: 'compramos uma casinha de transporte para os gatos' },
+    { data: '2026-11-08', valor: -26.00, tipo: 'Débito', nome: 'Ronilson Gonçalves (bar)', categoria: 'Bar e cigarro',
+      obs: 'cigarro e cerveja (essa chave é de um bar)' },
+
+    // ---------------- 09/11 ----------------
+    { data: '2026-11-09', valor: -13.98, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
   ],
 };
