@@ -121,6 +121,9 @@ h2 { font-family: var(--titulo); font-size: 20px; font-weight: 700; letter-spaci
 
 .rodape { text-align: center; font-size: 12.5px; color: var(--texto-3); margin-top: 8px; }
 
+.aviso-erro { position: fixed; left: 50%; top: 24px; transform: translateX(-50%); z-index: 30; width: min(520px, calc(100vw - 32px)); background: #fff6e0; color: #6b4600; border: 1px solid #f0d58a; border-radius: 12px; padding: 14px 18px; font-size: 14.5px; box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+.aviso-erro strong { display: block; margin-bottom: 2px; }
+.aviso-erro kbd { font: inherit; font-weight: 600; background: #fff; border: 1px solid #f0d58a; border-radius: 4px; padding: 0 5px; }
 .dica { position: fixed; z-index: 20; pointer-events: none; background: var(--texto); color: #fff; font-size: 13px; line-height: 1.4; padding: 8px 11px; border-radius: 8px; max-width: 260px; box-shadow: 0 8px 20px rgba(0,0,0,.18); }
 .dica b { display: block; }
 

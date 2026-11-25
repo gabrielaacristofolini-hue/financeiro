@@ -239,13 +239,19 @@
   }
 
   // ---------- início ----------
-  if (LISTA_MESES.length > 1) {
-    $('mesTexto').hidden = true;
-    const sel = $('selMes');
-    sel.hidden = false;
-    sel.innerHTML = LISTA_MESES.slice().reverse().map(m => `<option value="${m}">${capital(nomeMes(m))} ${m.slice(0, 4)}</option>`).join('');
-    sel.value = estado.mes;
-    sel.addEventListener('change', e => { estado.mes = e.target.value; estado.categoria = ''; estado.dia = ''; render(); });
+  try {
+    if (!window.FINANCAS) throw new Error('dados/transacoes.js não carregou');
+    if (LISTA_MESES.length > 1) {
+      $('mesTexto').hidden = true;
+      const sel = $('selMes');
+      sel.hidden = false;
+      sel.innerHTML = LISTA_MESES.slice().reverse().map(m => `<option value="${m}">${capital(nomeMes(m))} ${m.slice(0, 4)}</option>`).join('');
+      sel.value = estado.mes;
+      sel.addEventListener('change', e => { estado.mes = e.target.value; estado.categoria = ''; estado.dia = ''; render(); });
+    }
+    render();
+    window.PAINEL_OK = true;
+  } catch (erro) {
+    console.error(erro);
   }
-  render();
 })();
