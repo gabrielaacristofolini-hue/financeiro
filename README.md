@@ -4,10 +4,10 @@ Uma página simples, publicada no **GitHub Pages**, que mostra para onde foi o d
 
 ## O que a página mostra
 
-- **Resumo dos gastos**: total, fixos, variáveis, maior categoria e quanto está em "Outros".
-- **Pizza completa**: todas as categorias de gasto, com valor e porcentagem. Clique numa fatia para filtrar os lançamentos.
-- **Gastos por categoria**: onde foi gasto, se é fixo ou variável, quantidade, valor e %.
-- **Lançamentos**: cada gasto, com as observações escritas no app do banco.
+- **Destaques**: total gasto, média por dia, porcentagem de gastos fixos e quanto está em "Outros".
+- **Para onde foi o dinheiro**: pizza completa com todas as categorias, ao lado da tabela de categorias com valor, % e barra de proporção. Clicar numa fatia ou numa categoria filtra a página.
+- **Gastos por dia**: uma barra por dia do mês. Clicar num dia filtra os lançamentos.
+- **Lançamentos**: agrupados por dia, com as observações escritas no app do banco e as ligações entre transações.
 
 O foco é o gasto: entradas como salário não aparecem na página.
 

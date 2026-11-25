@@ -12,9 +12,9 @@
  * Despesa sem destino identificável vai em "Outros".
  */
 window.FINANCAS = {
-  atualizadoEm: '2026-11-09',
+  atualizadoEm: '2026-11-25',
   extratos: [
-    { conta: 'Nubank (conta)', de: '2026-11-01', ate: '2026-11-09' },
+    { conta: 'Nubank (conta)', de: '2026-11-01', ate: '2026-11-25' },
   ],
   transacoes: [
     // ---------------- 01/11 ----------------
@@ -99,5 +99,87 @@ window.FINANCAS = {
 
     // ---------------- 09/11 ----------------
     { data: '2026-11-09', valor: -13.98, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-09', valor: -44.95, tipo: 'Pix enviado', nome: '99 Food', categoria: 'Alimentação' },
+
+    // ---------------- 10/11 ----------------
+    { data: '2026-11-10', valor: -95.10, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-10', valor: -26.00, tipo: 'Débito', nome: 'Bar do Ronilson', categoria: 'Bar e cigarro',
+      obs: 'Cerveja e cigarro no bar.' },
+
+    // ---------------- 11/11 ----------------
+    { data: '2026-11-11', valor: 250.00, tipo: 'Pix recebido', nome: 'Melissa Tainara Correia Viana', categoria: 'Recebimentos' },
+    { data: '2026-11-11', valor: 250.00, tipo: 'Pix recebido', nome: 'Melissa Tainara Correia Viana', categoria: 'Recebimentos' },
+    { data: '2026-11-11', valor: -17.00, tipo: 'Débito', nome: 'Nosso Gás e Água', categoria: 'Contas da casa',
+      obs: 'Água mineral.' },
+
+    // ---------------- 12/11 ----------------
+    { data: '2026-11-12', valor: -29.12, tipo: 'Boleto', nome: 'Receita Federal (DARF)', categoria: 'Impostos e tarifas' },
+    { data: '2026-11-12', valor: -10.00, tipo: 'Pix enviado', nome: 'Israel Santos Barbosa', categoria: 'Transporte',
+      obs: 'Corrida de Uber.' },
+    { data: '2026-11-12', valor: -103.80, tipo: 'Débito', nome: 'Burger King', categoria: 'Alimentação' },
+    { data: '2026-11-12', valor: -10.00, tipo: 'Débito', nome: 'Burger King', categoria: 'Alimentação' },
+    { data: '2026-11-12', valor: -12.99, tipo: 'Débito', nome: 'Americanas', categoria: 'Compras',
+      obs: 'Escorredor de talheres para a casa.' },
+    { data: '2026-11-12', valor: -17.00, tipo: 'Pix enviado', nome: 'Silas Israel de Souza e Silva', categoria: 'Transporte',
+      obs: 'Corrida de Uber.' },
+
+    // ---------------- 13/11 ----------------
+    { data: '2026-11-13', valor: -175.03, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-13', valor: -26.00, tipo: 'Débito', nome: 'Bar do Ronilson', categoria: 'Bar e cigarro',
+      obs: 'Cerveja e cigarro no bar.' },
+
+    // ---------------- 14/11 ----------------
+    { data: '2026-11-14', valor: -47.95, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+
+    // ---------------- 15/11 ----------------
+    { data: '2026-11-15', valor: -9.00, tipo: 'Pix enviado', nome: 'Bruno Carvalho de Rezende', categoria: 'Transporte',
+      obs: 'Corrida de Uber.' },
+    { data: '2026-11-15', valor: -15.00, tipo: 'Pix enviado', nome: 'Matheus Henrique de Oliveira', categoria: 'Transporte',
+      obs: 'Corrida de Uber.' },
+
+    // ---------------- 17/11 ----------------
+    { data: '2026-11-17', valor: -43.96, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-17', valor: -119.21, tipo: 'Pix enviado', nome: 'Águas de Governador Valadares', categoria: 'Contas da casa',
+      obs: 'Conta de água.' },
+    { data: '2026-11-17', valor: -18.00, tipo: 'Débito', nome: 'Bar do Ronilson', categoria: 'Bar e cigarro',
+      obs: 'Cigarro no bar.' },
+
+    // ---------------- 18/11 ----------------
+    { data: '2026-11-18', valor: -55.39, tipo: 'Pix enviado', nome: 'Farmácia Indiana', categoria: 'Saúde' },
+    { data: '2026-11-18', valor: -25.96, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+
+    // ---------------- 19/11 ----------------
+    { data: '2026-11-19', valor: -72.00, tipo: 'Débito', nome: 'Marcio Rogério Higino', categoria: 'Alimentação',
+      obs: 'Lanche por delivery.' },
+
+    // ---------------- 20/11 ----------------
+    { data: '2026-11-20', valor: -35.00, tipo: 'Débito', nome: 'Bar do Ronilson', categoria: 'Bar e cigarro',
+      obs: 'Cerveja e cigarro no bar.' },
+
+    // ---------------- 21/11 ----------------
+    { data: '2026-11-21', valor: -152.94, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-21', valor: -14.98, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+    { data: '2026-11-21', valor: -17.00, tipo: 'Débito', nome: 'Nosso Gás e Água', categoria: 'Contas da casa',
+      obs: 'Galão de água mineral.' },
+
+    // ---------------- 23/11 ----------------
+    { data: '2026-11-23', valor: -23.90, tipo: 'Débito em conta', nome: 'Débito automático', categoria: 'Outros',
+      nota: 'Débito de R$ 23,90 que se repete todo dia 23 (também em setembro e outubro); o extrato não diz o que é.' },
+    { data: '2026-11-23', valor: -112.85, tipo: 'Pix enviado', nome: 'Claude (via Mercado Pago)', categoria: 'Assinaturas',
+      obs: 'Pagamento mensal do Claude, feito pela minha conta no Mercado Pago.',
+      nota: 'É um Pix para a minha própria conta, mas conta como gasto: paga a assinatura.' },
+    { data: '2026-11-23', valor: -86.05, tipo: 'Boleto', nome: 'Simples Nacional (DAS)', categoria: 'Impostos e tarifas' },
+    { data: '2026-11-23', valor: -23.65, tipo: 'Débito', nome: 'Juvenal Supermercado', categoria: 'Mercado' },
+
+    // ---------------- 24/11 ----------------
+    { data: '2026-11-24', valor: 2050.00, tipo: 'Pix recebido', nome: 'Bruno Albiero Negócios Digitais', categoria: 'Salário e renda' },
+    { data: '2026-11-24', valor: -2200.00, tipo: 'Aplicação', nome: 'RDB Nubank', categoria: 'Investimentos',
+      nota: 'Dinheiro guardado; não conta como gasto.' },
+    { data: '2026-11-24', valor: -25.31, tipo: 'Pix enviado', nome: '99 Food', categoria: 'Alimentação',
+      nota: 'Dois Pix iguais de R$ 25,31 para o 99 Food neste dia; vale conferir se não foi cobrança duplicada.' },
+    { data: '2026-11-24', valor: -36.00, tipo: 'Débito', nome: 'Bar do Ronilson', categoria: 'Bar e cigarro',
+      obs: 'Cigarro e cerveja no bar.' },
+    { data: '2026-11-24', valor: -25.31, tipo: 'Pix enviado', nome: '99 Food', categoria: 'Alimentação',
+      nota: 'Dois Pix iguais de R$ 25,31 para o 99 Food neste dia; vale conferir se não foi cobrança duplicada.' },
   ],
 };

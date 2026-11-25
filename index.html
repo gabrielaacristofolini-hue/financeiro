@@ -6,60 +6,64 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Meus Gastos</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232a78d6'/%3E%3Cpath d='M16 16V2a14 14 0 0 1 13.3 18.3z' fill='%23eb6834'/%3E%3Cpath d='M16 16l13.3 4.3A14 14 0 0 1 16 30z' fill='%231baf7a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-  <div class="folha">
+  <div class="pagina">
     <header class="topo">
       <div>
+        <p class="sobretitulo" id="sobretitulo">Gastos do mês</p>
         <h1>Meus Gastos</h1>
         <p class="subtitulo" id="periodo">Carregando…</p>
       </div>
-      <div class="mes-caixa">
-        <span>Mês:</span>
+      <label class="mes">
+        <span>Mês</span>
         <strong id="mesTexto">—</strong>
         <select id="selMes" aria-label="Escolher mês" hidden></select>
-      </div>
+      </label>
     </header>
 
-    <div class="grade-topo">
-      <section class="caixa">
-        <h2 class="faixa faixa-verde">Resumo dos gastos</h2>
-        <table class="resumo"><tbody id="resumo"></tbody></table>
-      </section>
+    <section class="kpis" aria-label="Resumo" id="kpis"></section>
 
-      <section class="caixa caixa-pizza">
-        <h2 class="titulo-pizza">Todos os gastos por categoria</h2>
-        <div class="pizza-corpo">
-          <div class="pizza" id="pizza"></div>
-          <ul class="legenda" id="legenda"></ul>
+    <section class="cartao">
+      <header class="cartao-topo">
+        <div>
+          <h2>Para onde foi o dinheiro</h2>
+          <p class="cartao-sub">Toque numa fatia ou numa categoria para ver só os lançamentos dela</p>
         </div>
-      </section>
-    </div>
-
-    <section class="bloco">
-      <h2 class="faixa faixa-azul">Gastos por categoria</h2>
-      <table class="tabela tabela-categorias">
-        <thead>
-          <tr><th>Categoria</th><th class="so-largo">Onde</th><th class="so-largo">Tipo</th><th class="num so-largo">Qtd.</th><th class="num">Valor</th><th class="num">%</th></tr>
-        </thead>
-        <tbody id="categorias"></tbody>
-        <tfoot id="categoriasTotal"></tfoot>
-      </table>
+      </header>
+      <div class="divisao">
+        <div class="pizza" id="pizza"></div>
+        <table class="categorias">
+          <thead><tr><th>Categoria</th><th class="col-barra" aria-hidden="true"></th><th class="num">Valor</th><th class="num">%</th></tr></thead>
+          <tbody id="categorias"></tbody>
+          <tfoot id="categoriasTotal"></tfoot>
+        </table>
+      </div>
     </section>
 
-    <section class="bloco">
-      <h2 class="faixa faixa-azul">
-        <span>Lançamentos</span>
-        <span class="filtro" id="filtro" hidden></span>
-      </h2>
-      <table class="tabela tabela-lancamentos">
-        <thead>
-          <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Observação</th><th class="num">Valor</th></tr>
-        </thead>
-        <tbody id="lancamentos"></tbody>
-        <tfoot id="lancamentosTotal"></tfoot>
-      </table>
+    <section class="cartao">
+      <header class="cartao-topo">
+        <div>
+          <h2>Gastos por dia</h2>
+          <p class="cartao-sub" id="subDias"></p>
+        </div>
+      </header>
+      <div class="dias" id="dias"></div>
+    </section>
+
+    <section class="cartao">
+      <header class="cartao-topo">
+        <div>
+          <h2>Lançamentos</h2>
+          <p class="cartao-sub" id="subLanc"></p>
+        </div>
+        <div class="filtro" id="filtro" hidden></div>
+      </header>
+      <div class="lancamentos" id="lancamentos"></div>
     </section>
 
     <footer class="rodape" id="rodape"></footer>
