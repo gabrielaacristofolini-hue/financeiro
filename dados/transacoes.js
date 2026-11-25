@@ -163,8 +163,9 @@ window.FINANCAS = {
       obs: 'Galão de água mineral.' },
 
     // ---------------- 23/11 ----------------
-    { data: '2026-11-23', valor: -23.90, tipo: 'Débito em conta', nome: 'Débito automático', categoria: 'Outros',
-      nota: 'Débito de R$ 23,90 que se repete todo dia 23 (também em setembro e outubro); o extrato não diz o que é.' },
+    { data: '2026-11-23', valor: -23.90, tipo: 'Débito em conta', nome: 'Spotify', categoria: 'Assinaturas',
+      obs: 'Assinatura mensal do Spotify.',
+      nota: 'Débito automático que se repete todo dia 23; no extrato aparece só como "Débito em conta".' },
     { data: '2026-11-23', valor: -112.85, tipo: 'Pix enviado', nome: 'Claude (via Mercado Pago)', categoria: 'Assinaturas',
       obs: 'Pagamento mensal do Claude, feito pela minha conta no Mercado Pago.',
       nota: 'É um Pix para a minha própria conta, mas conta como gasto: paga a assinatura.' },
